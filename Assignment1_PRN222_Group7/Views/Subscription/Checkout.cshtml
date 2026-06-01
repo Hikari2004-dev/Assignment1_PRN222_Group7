@@ -5,76 +5,147 @@
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10">
             <!-- Breadcrumbs -->
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-controller="Subscription" asp-action="Index">Gói dịch vụ</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Thanh toán MoMo</li>
+                    <li class="breadcrumb-item"><a asp-controller="Subscription" asp-action="Index" class="text-decoration-none">Gói dịch vụ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Chọn phương thức thanh toán</li>
                 </ol>
             </nav>
 
             <div class="card border-0 shadow-lg overflow-hidden rounded-4">
-                <div class="card-header bg-momo-gradient text-white p-4">
+                <div class="card-header bg-dark-gradient text-white p-4">
                     <div class="d-flex align-items-center">
-                        <div class="me-3 bg-white-soft p-2 rounded-3 d-flex align-items-center justify-content-center">
-                            <!-- SVG MoMo logo or card icon -->
-                            <svg width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2zM1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v1H1zM14 7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5M1.5 6h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1m0 2h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1"/>
+                        <div class="me-3 bg-white-soft p-2.5 rounded-3 d-flex align-items-center justify-content-center">
+                            <svg width="24" height="24" fill="currentColor" class="bi bi-wallet2" viewBox="0 0 16 16">
+                                <path d="M12.136.326A1.5 1.5 0 0 1 14 1.78V3h.5A1.5 1.5 0 0 1 16 4.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 13.5v-9a1.5 1.5 0 0 1 1.463-1.474l10.673-1.7zm-.73 1.01L1.462 3H14V1.78a.5.5 0 0 0-.624-.485zM1.5 4a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"/>
                             </svg>
                         </div>
                         <div>
-                            <h4 class="mb-0 fw-bold">Thanh Toán Qua MoMo</h4>
-                            <small class="opacity-75">Nâng cấp tài khoản của bạn lên gói @Model.Name</small>
+                            <h4 class="mb-0 fw-bold">Chi Tiết Thanh Toán</h4>
+                            <small class="opacity-75">Nâng cấp tài khoản của bạn lên gói dịch vụ tốt nhất</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body p-4 p-md-5">
-                    <div class="text-center mb-5">
-                        <div class="momo-logo-badge d-inline-flex align-items-center justify-content-center mb-3">
-                            <span class="momo-text">MoMo</span>
-                        </div>
-                        <h3 class="fw-bold text-dark">Thanh toán: @Model.Price.ToString("N0") VNĐ</h3>
-                        <p class="text-muted">Bạn đang thực hiện thanh toán cho gói dịch vụ <strong class="text-momo">@Model.Name</strong> thời hạn 1 tháng.</p>
-                    </div>
+                    <div class="row g-5">
+                        <!-- Left Column: Order Summary -->
+                        <div class="col-md-5 order-md-2">
+                            <div class="bg-light-soft p-4 rounded-4 border border-light-subtle h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <h5 class="fw-bold mb-4 text-dark border-bottom pb-2">Thông tin hóa đơn</h5>
+                                    
+                                    <div class="mb-4 text-center py-3 bg-white rounded-3 shadow-sm border border-light">
+                                        <span class="text-muted d-block small text-uppercase fw-semibold mb-1">Gói dịch vụ</span>
+                                        <h4 class="fw-extrabold text-primary mb-0">@Model.Name</h4>
+                                    </div>
 
-                    <div class="bg-light p-4 rounded-4 mb-4 border border-light-subtle">
-                        <h5 class="fw-bold mb-3 text-dark border-bottom pb-2">Thông tin hóa đơn</h5>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Sản phẩm:</span>
-                            <strong class="text-dark">Hikari Chatbot - Gói @Model.Name</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Thời gian sử dụng:</span>
-                            <span class="text-dark fw-semibold">30 ngày</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-0">
-                            <span class="text-muted">Phương thức thanh toán:</span>
-                            <span class="text-momo-dark fw-bold">Cổng ví điện tử MoMo</span>
-                        </div>
-                    </div>
+                                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                        <span class="text-muted">Đơn giá:</span>
+                                        <strong class="text-dark">@Model.Price.ToString("N0") VNĐ</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                                        <span class="text-muted">Thời hạn sử dụng:</span>
+                                        <span class="text-dark fw-semibold">30 ngày (1 tháng)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <span class="text-muted">Tổng thanh toán:</span>
+                                        <span class="fs-4 fw-extrabold text-success">@Model.Price.ToString("N0") VNĐ</span>
+                                    </div>
+                                </div>
 
-                    <div class="alert alert-info border-0 bg-info-soft text-info shadow-sm rounded-3 mb-4">
-                        <div class="d-flex">
-                            <div class="me-2">
-                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                                <div class="alert alert-info border-0 bg-info-soft text-info rounded-3 mt-4 mb-0 small">
+                                    <div class="d-flex">
+                                        <div class="me-2">
+                                            <svg width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <strong>Sandbox Mode:</strong> Giao dịch thử nghiệm, không sử dụng thẻ/tài khoản thật và không phát sinh chi phí thực tế.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <strong>Môi trường thử nghiệm (Sandbox):</strong> Sau khi nhấn nút xác nhận bên dưới, hệ thống sẽ đưa bạn sang trang thanh toán thử nghiệm của MoMo. Bạn không cần chi trả tiền thật để hoàn thành giao dịch này.
-                            </div>
+                        </div>
+
+                        <!-- Right Column: Payment Gateway Selection -->
+                        <div class="col-md-7 order-md-1">
+                            <h5 class="fw-bold mb-4 text-dark">Chọn phương thức thanh toán</h5>
+                            
+                            <form id="checkout-form" asp-controller="Subscription" asp-action="PayWithMomo" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="planId" value="@Model.Id" />
+                                
+                                <div class="payment-methods-grid d-flex flex-column gap-3 mb-4">
+                                    
+                                    <!-- Option 1: MoMo -->
+                                    <label class="payment-card-label" for="method-momo">
+                                        <input type="radio" id="method-momo" name="paymentMethod" value="MoMo" checked />
+                                        <div class="payment-card-content p-4 rounded-4 border d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center">
+                                                <div class="momo-icon-container me-3 d-flex align-items-center justify-content-center">
+                                                    <!-- MoMo Custom SVG Logo -->
+                                                    <svg class="momo-svg" viewBox="0 0 100 100" width="40" height="40">
+                                                        <rect width="100" height="100" rx="20" fill="#A50064"/>
+                                                        <circle cx="50" cy="50" r="30" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+                                                        <path d="M35 60 V40 L50 52 L65 40 V60" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1 text-dark text-brand-momo">Ví Điện Tử MoMo</h6>
+                                                    <small class="text-muted d-block">Thanh toán qua ví điện tử MoMo</small>
+                                                </div>
+                                            </div>
+                                            <div class="selection-indicator">
+                                                <div class="checkmark-circle"></div>
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                    <!-- Option 2: VNPAY -->
+                                    <label class="payment-card-label" for="method-vnpay">
+                                        <input type="radio" id="method-vnpay" name="paymentMethod" value="VnPay" />
+                                        <div class="payment-card-content p-4 rounded-4 border d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center">
+                                                <div class="vnpay-icon-container me-3 d-flex align-items-center justify-content-center">
+                                                    <!-- VNPAY Custom SVG Logo -->
+                                                    <svg viewBox="0 0 120 40" width="80" height="28" class="vnpay-svg">
+                                                        <!-- Graphic Shield -->
+                                                        <path d="M12 4 L3 15 H9 V28 H15 V15 H21 Z" fill="#005a9c" />
+                                                        <!-- Text VN -->
+                                                        <text x="26" y="24" font-family="'Outfit', sans-serif" font-weight="900" font-size="20" fill="#005a9c">VN</text>
+                                                        <!-- Text PAY -->
+                                                        <text x="56" y="24" font-family="'Outfit', sans-serif" font-weight="900" font-size="20" fill="#e31837">PAY</text>
+                                                        <!-- QR Dot -->
+                                                        <rect x="100" y="8" width="6" height="6" fill="#005a9c" />
+                                                        <rect x="108" y="8" width="6" height="6" fill="#e31837" />
+                                                        <rect x="100" y="16" width="6" height="6" fill="#e31837" />
+                                                        <rect x="108" y="16" width="6" height="6" fill="#005a9c" />
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-1 text-dark text-brand-vnpay">Cổng VNPAY</h6>
+                                                    <small class="text-muted d-block">Thanh toán qua thẻ ATM, Ngân hàng, hoặc mã QR</small>
+                                                </div>
+                                            </div>
+                                            <div class="selection-indicator">
+                                                <div class="checkmark-circle"></div>
+                                            </div>
+                                        </div>
+                                    </label>
+
+                                </div>
+
+                                <div class="d-flex gap-3 pt-3">
+                                    <a asp-controller="Subscription" asp-action="Index" class="btn btn-outline-secondary px-4 py-3 rounded-3 fw-semibold flex-grow-1">Hủy bỏ</a>
+                                    <button type="submit" id="btn-pay-submit" class="btn btn-gradient-action text-white px-4 py-3 rounded-3 fw-bold flex-grow-2">Xác nhận thanh toán</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-
-                    <!-- Actions Form -->
-                    <form asp-controller="Subscription" asp-action="PayWithMomo" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="planId" value="@Model.Id" />
-                        <div class="d-flex gap-3">
-                            <a asp-controller="Subscription" asp-action="Index" class="btn btn-outline-secondary px-4 py-2.5 rounded-3 fw-semibold flex-grow-1">Hủy bỏ</a>
-                            <button type="submit" class="btn btn-momo text-white px-4 py-2.5 rounded-3 fw-semibold flex-grow-2">Thanh toán qua Ví MoMo</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -82,55 +153,177 @@
 </div>
 
 <style>
-    .bg-momo-gradient {
-        background: linear-gradient(135deg, #a50064 0%, #d82d8c 100%);
+    .bg-dark-gradient {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     }
 
     .bg-white-soft {
-        background-color: rgba(255, 255, 255, 0.15);
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .bg-light-soft {
+        background-color: rgba(243, 244, 246, 0.6);
+        backdrop-filter: blur(10px);
     }
 
     .bg-info-soft {
-        background-color: rgba(0, 123, 255, 0.05);
+        background-color: rgba(13, 202, 240, 0.08);
     }
 
-    .text-momo {
-        color: #a50064;
+    .text-brand-momo {
+        color: #A50064;
     }
 
-    .text-momo-dark {
-        color: #d82d8c;
+    .text-brand-vnpay {
+        color: #005a9c;
     }
 
-    .momo-logo-badge {
-        width: 80px;
-        height: 80px;
-        background-color: #a50064;
-        border-radius: 20px;
-        box-shadow: 0 4px 10px rgba(165, 0, 100, 0.2);
-    }
-
-    .momo-text {
-        color: #ffffff;
-        font-family: 'Outfit', sans-serif;
+    .fw-extrabold {
         font-weight: 800;
-        font-size: 1.5rem;
-        letter-spacing: -1px;
-    }
-
-    .btn-momo {
-        background: linear-gradient(135deg, #a50064 0%, #d82d8c 100%);
-        border: none;
-        transition: opacity 0.2s;
-    }
-
-    .btn-momo:hover {
-        opacity: 0.95;
-        color: white;
-        box-shadow: 0 4px 12px rgba(165, 0, 100, 0.25);
     }
 
     .flex-grow-2 {
         flex-grow: 2;
     }
+
+    /* Interactive Payment Cards styling */
+    .payment-card-label {
+        cursor: pointer;
+        width: 100%;
+        display: block;
+    }
+
+    .payment-card-label input[type="radio"] {
+        display: none;
+    }
+
+    .payment-card-content {
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background-color: #ffffff;
+        position: relative;
+    }
+
+    .payment-card-content:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+        border-color: #d1d5db;
+    }
+
+    /* Active States depending on selection */
+    .payment-card-label input[type="radio"]:checked + .payment-card-content {
+        transform: scale(1.01);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Momo Specific Checked */
+    .payment-card-label input[type="radio"][value="MoMo"]:checked + .payment-card-content {
+        border-color: #A50064;
+        background-color: rgba(165, 0, 100, 0.01);
+    }
+
+    /* VnPay Specific Checked */
+    .payment-card-label input[type="radio"][value="VnPay"]:checked + .payment-card-content {
+        border-color: #005a9c;
+        background-color: rgba(0, 90, 156, 0.01);
+    }
+
+    /* Checkmark styling */
+    .checkmark-circle {
+        width: 22px;
+        height: 22px;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        background-color: #fff;
+    }
+
+    .checkmark-circle::after {
+        content: "";
+        width: 10px;
+        height: 10px;
+        background-color: transparent;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    /* Checkmark active states */
+    .payment-card-label input[type="radio"][value="MoMo"]:checked + .payment-card-content .checkmark-circle {
+        border-color: #A50064;
+    }
+    .payment-card-label input[type="radio"][value="MoMo"]:checked + .payment-card-content .checkmark-circle::after {
+        background-color: #A50064;
+    }
+
+    .payment-card-label input[type="radio"][value="VnPay"]:checked + .payment-card-content .checkmark-circle {
+        border-color: #005a9c;
+    }
+    .payment-card-label input[type="radio"][value="VnPay"]:checked + .payment-card-content .checkmark-circle::after {
+        background-color: #005a9c;
+    }
+
+    /* Submit Button styling changes dynamically */
+    .btn-gradient-action {
+        background: linear-gradient(135deg, #A50064 0%, #C90076 100%);
+        border: none;
+        box-shadow: 0 4px 14px rgba(165, 0, 100, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-gradient-action:hover {
+        opacity: 0.95;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(165, 0, 100, 0.4);
+    }
+
+    .btn-gradient-momo {
+        background: linear-gradient(135deg, #A50064 0%, #C90076 100%);
+        box-shadow: 0 4px 14px rgba(165, 0, 100, 0.3);
+    }
+
+    .btn-gradient-momo:hover {
+        box-shadow: 0 6px 20px rgba(165, 0, 100, 0.4);
+    }
+
+    .btn-gradient-vnpay {
+        background: linear-gradient(135deg, #005a9c 0%, #0077ce 100%);
+        box-shadow: 0 4px 14px rgba(0, 90, 156, 0.3);
+    }
+
+    .btn-gradient-vnpay:hover {
+        box-shadow: 0 6px 20px rgba(0, 90, 156, 0.4);
+    }
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("checkout-form");
+        const submitBtn = document.getElementById("btn-pay-submit");
+        const radios = document.querySelectorAll('input[name="paymentMethod"]');
+
+        function updateFormActionAndButton(selectedVal) {
+            if (selectedVal === "MoMo") {
+                form.action = '@Url.Action("PayWithMomo", "Subscription")';
+                submitBtn.className = "btn btn-gradient-action btn-gradient-momo text-white px-4 py-3 rounded-3 fw-bold flex-grow-2";
+            } else if (selectedVal === "VnPay") {
+                form.action = '@Url.Action("PayWithVnPay", "Subscription")';
+                submitBtn.className = "btn btn-gradient-action btn-gradient-vnpay text-white px-4 py-3 rounded-3 fw-bold flex-grow-2";
+            }
+        }
+
+        radios.forEach(radio => {
+            radio.addEventListener("change", function() {
+                updateFormActionAndButton(this.value);
+            });
+        });
+
+        // Initialize with default checked radio
+        const checkedRadio = document.querySelector('input[name="paymentMethod"]:checked');
+        if (checkedRadio) {
+            updateFormActionAndButton(checkedRadio.value);
+        }
+    });
+</script>

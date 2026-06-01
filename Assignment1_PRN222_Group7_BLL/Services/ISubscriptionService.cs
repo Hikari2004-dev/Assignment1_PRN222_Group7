@@ -9,6 +9,6 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         Task<UserSubscription?> GetActiveSubscriptionAsync(int userId);
         Task<List<SubscriptionPlan>> GetActivePlansAsync();
         Task<SubscriptionPlan?> GetPlanByIdAsync(int planId);
-        Task<bool> UpgradeSubscriptionAsync(int userId, int planId);
+        Task<bool> UpgradeSubscriptionAsync(int userId, int planId, string? transactionId = null);
     }
 }

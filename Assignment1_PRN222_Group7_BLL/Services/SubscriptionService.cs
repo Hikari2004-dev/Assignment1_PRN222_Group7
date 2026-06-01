@@ -39,7 +39,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             return await planRepo.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive);
         }
 
-        public async Task<bool> UpgradeSubscriptionAsync(int userId, int planId)
+        public async Task<bool> UpgradeSubscriptionAsync(int userId, int planId, string? transactionId = null)
         {
             var planRepo = _unitOfWork.GetRepository<SubscriptionPlan>();
             var plan = await planRepo.FirstOrDefaultAsync(p => p.Id == planId && p.IsActive);
@@ -69,7 +69,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                 EndDate = DateTime.UtcNow.AddMonths(1), // Gói 1 tháng
                 IsActive = true,
                 PaymentStatus = PaymentStatus.Paid,
-                TransactionId = "MOCK_" + Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper(),
+                TransactionId = transactionId ?? ("MOCK_" + Guid.NewGuid().ToString("N").Substring(0, 10).ToUpper()),
                 CreatedAt = DateTime.UtcNow
             };
 

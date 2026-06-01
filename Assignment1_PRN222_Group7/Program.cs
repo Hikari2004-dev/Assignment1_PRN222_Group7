@@ -48,6 +48,7 @@ namespace Assignment1_PRN222_Group7
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
+            builder.Services.AddScoped<IVnPayService, VnPayService>();
 
             // ─── MVC ──────────────────────────────────────────────────────────
             builder.Services.AddControllersWithViews();
