@@ -1,0 +1,136 @@
+@model Assignment1_PRN222_Group7_DAL.Entities.SubscriptionPlan
+@{
+    ViewData["Title"] = "Thanh toán Gói " + Model.Name;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumbs -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Subscription" asp-action="Index">Gói dịch vụ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Thanh toán MoMo</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-lg overflow-hidden rounded-4">
+                <div class="card-header bg-momo-gradient text-white p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 bg-white-soft p-2 rounded-3 d-flex align-items-center justify-content-center">
+                            <!-- SVG MoMo logo or card icon -->
+                            <svg width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M1.5 2A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2zM1 3.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 .5.5v1H1zM14 7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5M1.5 6h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1m0 2h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold">Thanh Toán Qua MoMo</h4>
+                            <small class="opacity-75">Nâng cấp tài khoản của bạn lên gói @Model.Name</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-5">
+                        <div class="momo-logo-badge d-inline-flex align-items-center justify-content-center mb-3">
+                            <span class="momo-text">MoMo</span>
+                        </div>
+                        <h3 class="fw-bold text-dark">Thanh toán: @Model.Price.ToString("N0") VNĐ</h3>
+                        <p class="text-muted">Bạn đang thực hiện thanh toán cho gói dịch vụ <strong class="text-momo">@Model.Name</strong> thời hạn 1 tháng.</p>
+                    </div>
+
+                    <div class="bg-light p-4 rounded-4 mb-4 border border-light-subtle">
+                        <h5 class="fw-bold mb-3 text-dark border-bottom pb-2">Thông tin hóa đơn</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Sản phẩm:</span>
+                            <strong class="text-dark">Hikari Chatbot - Gói @Model.Name</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Thời gian sử dụng:</span>
+                            <span class="text-dark fw-semibold">30 ngày</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-0">
+                            <span class="text-muted">Phương thức thanh toán:</span>
+                            <span class="text-momo-dark fw-bold">Cổng ví điện tử MoMo</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info border-0 bg-info-soft text-info shadow-sm rounded-3 mb-4">
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                            </div>
+                            <div>
+                                <strong>Môi trường thử nghiệm (Sandbox):</strong> Sau khi nhấn nút xác nhận bên dưới, hệ thống sẽ đưa bạn sang trang thanh toán thử nghiệm của MoMo. Bạn không cần chi trả tiền thật để hoàn thành giao dịch này.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions Form -->
+                    <form asp-controller="Subscription" asp-action="PayWithMomo" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="planId" value="@Model.Id" />
+                        <div class="d-flex gap-3">
+                            <a asp-controller="Subscription" asp-action="Index" class="btn btn-outline-secondary px-4 py-2.5 rounded-3 fw-semibold flex-grow-1">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-momo text-white px-4 py-2.5 rounded-3 fw-semibold flex-grow-2">Thanh toán qua Ví MoMo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-momo-gradient {
+        background: linear-gradient(135deg, #a50064 0%, #d82d8c 100%);
+    }
+
+    .bg-white-soft {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .bg-info-soft {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .text-momo {
+        color: #a50064;
+    }
+
+    .text-momo-dark {
+        color: #d82d8c;
+    }
+
+    .momo-logo-badge {
+        width: 80px;
+        height: 80px;
+        background-color: #a50064;
+        border-radius: 20px;
+        box-shadow: 0 4px 10px rgba(165, 0, 100, 0.2);
+    }
+
+    .momo-text {
+        color: #ffffff;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: -1px;
+    }
+
+    .btn-momo {
+        background: linear-gradient(135deg, #a50064 0%, #d82d8c 100%);
+        border: none;
+        transition: opacity 0.2s;
+    }
+
+    .btn-momo:hover {
+        opacity: 0.95;
+        color: white;
+        box-shadow: 0 4px 12px rgba(165, 0, 100, 0.25);
+    }
+
+    .flex-grow-2 {
+        flex-grow: 2;
+    }
+</style>
