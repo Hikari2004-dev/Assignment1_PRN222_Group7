@@ -1,0 +1,63 @@
+@{
+    var subject = (Assignment1_PRN222_Group7_DAL.Entities.Subject)ViewBag.Subject;
+    ViewData["Title"] = "Thêm chương";
+    var f = Context.Request.HasFormContentType ? Context.Request.Form : null;
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Subject" asp-action="Index">Môn học</a></li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@subject.Id">@subject.Code</a>
+        </li>
+        <li class="breadcrumb-item active">Thêm chương</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;max-width:540px">
+    <div class="card-body p-4">
+        <h2 class="h5 fw-bold mb-1">➕ Thêm chương mới</h2>
+        <p class="text-muted small mb-4">Môn: <strong>@subject.Name (@subject.Code)</strong></p>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@err.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form asp-controller="Chapter" asp-action="Create" asp-route-subjectId="@subject.Id" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="title">Tiêu đề chương <span class="text-danger">*</span></label>
+                <input id="title" name="title" type="text" class="form-control"
+                       placeholder="Ví dụ: Chương 1: Giới thiệu" required maxlength="300"
+                       value="@f?["title"]" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="description">Mô tả</label>
+                <textarea id="description" name="description" class="form-control" rows="3"
+                          placeholder="Mô tả nội dung chương (không bắt buộc)">@f?["description"]</textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" for="orderIndex">Thứ tự (OrderIndex)</label>
+                <input id="orderIndex" name="orderIndex" type="number" class="form-control"
+                       value="@(f?["orderIndex"].ToString() is { Length: > 0 } v ? v : "1")"
+                       min="0" />
+                <div class="form-text">Số nhỏ hơn hiển thị trước.</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu</button>
+                <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@subject.Id"
+                   class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

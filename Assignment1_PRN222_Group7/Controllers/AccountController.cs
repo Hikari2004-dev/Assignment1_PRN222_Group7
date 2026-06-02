@@ -36,6 +36,11 @@ namespace Assignment1_PRN222_Group7.Controllers
                                                bool rememberMe = false,
                                                string? returnUrl = null)
         {
+            if (!ModelState.IsValid)
+            {
+                ViewData["ReturnUrl"] = returnUrl;
+                return View();
+            }
             // 1. Xác thực thông qua BLL
             var user = await _accountService.LoginAsync(email, password);
 
@@ -108,10 +113,16 @@ namespace Assignment1_PRN222_Group7.Controllers
                                                    string password, string confirmPassword,
                                                    int roleId = 1)  // mặc định Student (RoleId=1)
         {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = await _accountService.GetAvailableRolesAsync();
+                return View();
+            }
             // Validate mật khẩu khớp
             if (password != confirmPassword)
             {
                 ModelState.AddModelError("confirmPassword", "Mật khẩu xác nhận không khớp.");
+                ViewBag.Roles = await _accountService.GetAvailableRolesAsync();
                 return View();
             }
 
@@ -120,6 +131,7 @@ namespace Assignment1_PRN222_Group7.Controllers
             if (!success)
             {
                 ModelState.AddModelError("email", "Email này đã được sử dụng.");
+                ViewBag.Roles = await _accountService.GetAvailableRolesAsync();
                 return View();
             }
 

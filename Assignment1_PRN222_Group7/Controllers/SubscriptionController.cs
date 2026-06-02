@@ -51,6 +51,7 @@ namespace Assignment1_PRN222_Group7.Controllers
         // GET /Subscription/Checkout
         public async Task<IActionResult> Checkout(int planId)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
@@ -92,6 +93,11 @@ namespace Assignment1_PRN222_Group7.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PayWithMomo(int planId)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Yêu cầu nâng cấp gói không hợp lệ.";
+                return RedirectToAction("Index");
+            }
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
@@ -134,13 +140,9 @@ namespace Assignment1_PRN222_Group7.Controllers
             string payType,
             string responseTime,
             string extraData,
-            string signature)
+            string signature,
+            [FromQuery] string accessKey)
         {
-            // Lấy AccessKey từ HttpContext hoặc truyền cứng từ BLL.
-            // Để khớp với tham số VerifySignature của BLL, ta truyền accessKey nhận lại từ truy vấn hoặc cấu hình.
-            // MoMo gửi lại accessKey trong query string
-            string accessKey = Request.Query["accessKey"].ToString();
-
             // 1. Xác thực chữ ký phản hồi từ MoMo
             var isValidSignature = _momoService.VerifySignature(
                 accessKey, amount, extraData, message, orderId, orderInfo, 
@@ -200,6 +202,11 @@ namespace Assignment1_PRN222_Group7.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PayWithVnPay(int planId)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Yêu cầu nâng cấp gói không hợp lệ.";
+                return RedirectToAction("Index");
+            }
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
@@ -232,8 +239,12 @@ namespace Assignment1_PRN222_Group7.Controllers
 
         // GET /Subscription/VnPayCallback
         [HttpGet]
-        public async Task<IActionResult> VnPayCallback()
+        public async Task<IActionResult> VnPayCallback(
+            [FromQuery] string vnp_ResponseCode,
+            [FromQuery] string vnp_TransactionNo,
+            [FromQuery] string vnp_TxnRef)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var queryParams = Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString());
 
             // 1. Xác thực chữ ký phản hồi từ VNPAY
@@ -245,9 +256,9 @@ namespace Assignment1_PRN222_Group7.Controllers
             }
 
             // 2. Lấy các tham số phản hồi
-            string responseCode = Request.Query["vnp_ResponseCode"].ToString();
-            string transactionNo = Request.Query["vnp_TransactionNo"].ToString();
-            string txnRef = Request.Query["vnp_TxnRef"].ToString();
+            string responseCode = vnp_ResponseCode;
+            string transactionNo = vnp_TransactionNo;
+            string txnRef = vnp_TxnRef;
 
             // txnRef định dạng: userId_planId_guid
             int userId = 0;
@@ -289,8 +300,12 @@ namespace Assignment1_PRN222_Group7.Controllers
 
         // GET /Subscription/VnPayIpn
         [HttpGet]
-        public async Task<IActionResult> VnPayIpn()
+        public async Task<IActionResult> VnPayIpn(
+            [FromQuery] string vnp_ResponseCode,
+            [FromQuery] string vnp_TransactionNo,
+            [FromQuery] string vnp_TxnRef)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var queryParams = Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString());
 
             // 1. Xác thực chữ ký phản hồi từ VNPAY
@@ -301,9 +316,9 @@ namespace Assignment1_PRN222_Group7.Controllers
             }
 
             // 2. Lấy tham số phản hồi
-            string responseCode = Request.Query["vnp_ResponseCode"].ToString();
-            string transactionNo = Request.Query["vnp_TransactionNo"].ToString();
-            string txnRef = Request.Query["vnp_TxnRef"].ToString();
+            string responseCode = vnp_ResponseCode;
+            string transactionNo = vnp_TransactionNo;
+            string txnRef = vnp_TxnRef;
 
             int userId = 0;
             int planId = 0;
@@ -347,6 +362,11 @@ namespace Assignment1_PRN222_Group7.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelAutoRenew()
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Yêu cầu không hợp lệ.";
+                return RedirectToAction("Index");
+            }
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
@@ -370,6 +390,11 @@ namespace Assignment1_PRN222_Group7.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ScheduleDowngrade(int planId)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Dữ liệu không hợp lệ.";
+                return RedirectToAction("Index");
+            }
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
@@ -393,6 +418,11 @@ namespace Assignment1_PRN222_Group7.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelScheduledDowngrade()
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Yêu cầu không hợp lệ.";
+                return RedirectToAction("Index");
+            }
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
