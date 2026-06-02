@@ -115,6 +115,10 @@ namespace Assignment1_PRN222_Group7_DAL.Context
                     .WithMany(p => p.UserSubscriptions)
                     .HasForeignKey(x => x.PlanId)
                     .OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.ScheduledPlan)
+                    .WithMany()
+                    .HasForeignKey(x => x.ScheduledPlanId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ─── Subject ──────────────────────────────────────────────────────

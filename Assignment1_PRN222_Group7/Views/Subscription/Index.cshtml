@@ -11,12 +11,20 @@
         
         @if (activeSub != null)
         {
-            <div class="active-badge-container d-inline-block px-4 py-2 mt-3 rounded-pill bg-light border">
+            <div class="active-badge-container d-inline-block px-4 py-2 mt-3 rounded-pill bg-light border text-center">
                 <span class="text-secondary">Gói hiện tại:</span> 
-                <strong class="text-primary text-uppercase">@activeSub.Plan.Name</strong>
-                @if (activeSub.Plan.Tier != Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free)
+                <strong class="text-primary text-uppercase">@(activeSub.Plan?.Name)</strong>
+                @if (activeSub.Plan?.Tier != Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free)
                 {
                     <span class="text-muted ms-2">(Hạn dùng: @activeSub.EndDate?.ToString("dd/MM/yyyy"))</span>
+                    @if (!activeSub.AutoRenew)
+                    {
+                        <span class="badge bg-danger ms-2">Hủy gia hạn</span>
+                    }
+                    else if (activeSub.ScheduledPlanId.HasValue)
+                    {
+                        <span class="badge bg-info text-dark ms-2">Hạ gói về @(activeSub.ScheduledPlanId == 2 ? "Basic" : "Free") khi hết hạn</span>
+                    }
                 }
             </div>
         }
@@ -37,6 +45,20 @@
             <svg class="bi flex-shrink-0 me-2" width="16" height="16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
             @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (ViewBag.PendingSubscription != null)
+    {
+        var pendingSub = ViewBag.PendingSubscription as Assignment1_PRN222_Group7_DAL.Entities.UserSubscription;
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3 p-4 d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                <h5 class="fw-bold mb-1 text-warning-emphasis">Bạn có gói dịch vụ đang chờ kích hoạt!</h5>
+                <p class="mb-0 text-muted">Gói Premium đã hết hạn. Vui lòng thanh toán cho gói <strong>@(pendingSub?.Plan?.Name)</strong> để tiếp tục sử dụng dịch vụ trả phí.</p>
+            </div>
+            <div>
+                <a asp-controller="Subscription" asp-action="Checkout" asp-route-planId="@(pendingSub?.PlanId ?? 0)" class="btn btn-warning fw-bold text-dark px-4 py-2.5 rounded-3">Thanh Toán Kích Hoạt</a>
+            </div>
         </div>
     }
 
@@ -103,9 +125,41 @@
                         <div class="mt-auto">
                             @if (isCurrent)
                             {
-                                <button class="btn btn-outline-secondary w-100 py-2.5 rounded-3 fw-semibold" disabled>
+                                <button class="btn btn-outline-secondary w-100 py-2.5 rounded-3 fw-semibold mb-2" disabled>
                                     Đang sử dụng
                                 </button>
+                                @if (plan.Tier != Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free && activeSub != null && activeSub.AutoRenew)
+                                {
+                                    <form asp-controller="Subscription" asp-action="CancelAutoRenew" method="post" class="w-100">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-link text-danger w-100 text-decoration-none small p-0 mt-1">Hủy gia hạn gói</button>
+                                    </form>
+                                }
+                            }
+                            else if (activeSub != null && activeSub.Plan?.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Premium && plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Basic)
+                            {
+                                @if (activeSub.ScheduledPlanId == plan.Id)
+                                {
+                                    <div class="alert alert-info py-2 px-3 rounded-3 mb-2 small text-center">
+                                        Đã đặt lịch hạ xuống gói này sau khi hết hạn Premium.
+                                    </div>
+                                    <form asp-controller="Subscription" asp-action="CancelScheduledDowngrade" method="post" class="w-100">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger w-100 py-2 rounded-3 fw-semibold btn-pricing-action">
+                                            Hủy đặt lịch hạ gói
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Subscription" asp-action="ScheduleDowngrade" method="post" class="w-100">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="planId" value="@plan.Id" />
+                                        <button type="submit" class="btn btn-outline-warning w-100 py-2.5 rounded-3 fw-semibold btn-pricing-action">
+                                            Đặt lịch hạ gói
+                                        </button>
+                                    </form>
+                                }
                             }
                             else if (plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free)
                             {
@@ -117,7 +171,7 @@
                             {
                                 <a asp-controller="Subscription" asp-action="Checkout" asp-route-planId="@plan.Id" 
                                    class="btn @(isPremium ? "btn-primary-gradient text-white" : "btn-outline-primary") w-100 py-2.5 rounded-3 fw-semibold btn-pricing-action">
-                                    Nâng cấp ngay
+                                    @(activeSub != null && activeSub.Plan?.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Basic && plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Premium ? "Nâng cấp ngay" : "Mua ngay")
                                 </a>
                             }
                         </div>

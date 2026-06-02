@@ -23,8 +23,13 @@ namespace Assignment1_PRN222_Group7_DAL.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool AutoRenew { get; set; } = true;
+
+        public int? ScheduledPlanId { get; set; }
+
         // Navigation
         public User User { get; set; } = null!;
         public SubscriptionPlan Plan { get; set; } = null!;
+        public SubscriptionPlan? ScheduledPlan { get; set; }
     }
 }

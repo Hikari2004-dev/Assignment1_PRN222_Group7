@@ -50,6 +50,9 @@ namespace Assignment1_PRN222_Group7
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
             builder.Services.AddScoped<IVnPayService, VnPayService>();
 
+            // ─── Background Hosted Services ──────────────────────────────────
+            builder.Services.AddHostedService<Assignment1_PRN222_Group7.BackgroundServices.SubscriptionExpirationWorker>();
+
             // ─── MVC ──────────────────────────────────────────────────────────
             builder.Services.AddControllersWithViews();
 

@@ -37,10 +37,14 @@ namespace Assignment1_PRN222_Group7.Controllers
             // Lấy thông tin gói đang hoạt động của người dùng
             var activeSubscription = await _subscriptionService.GetActiveSubscriptionAsync(userId);
 
+            // Lấy gói pending chờ kích hoạt nếu có
+            var pendingSubscription = await _subscriptionService.GetPendingSubscriptionAsync(userId);
+
             // Lấy tất cả các gói dịch vụ có hiệu lực
             var plans = await _subscriptionService.GetActivePlansAsync();
 
             ViewBag.ActiveSubscription = activeSubscription;
+            ViewBag.PendingSubscription = pendingSubscription;
             return View(plans);
         }
 
@@ -76,6 +80,10 @@ namespace Assignment1_PRN222_Group7.Controllers
                 return RedirectToAction("Index");
             }
 
+            var finalAmount = await _subscriptionService.GetUpgradeAmountAsync(userId, planId);
+            ViewBag.FinalAmount = finalAmount;
+            ViewBag.IsUpgrade = activeSubscription != null && activeSubscription.Plan.Tier == SubscriptionTier.Basic && plan.Tier == SubscriptionTier.Premium;
+
             return View(plan);
         }
 
@@ -97,8 +105,10 @@ namespace Assignment1_PRN222_Group7.Controllers
                 return RedirectToAction("Index");
             }
 
+            var finalPrice = await _subscriptionService.GetUpgradeAmountAsync(userId, plan.Id);
+
             // Tạo URL thanh toán MoMo Sandbox qua BLL
-            var payUrl = await _momoService.CreatePaymentUrlAsync(userId, plan.Id, plan.Name, plan.Price);
+            var payUrl = await _momoService.CreatePaymentUrlAsync(userId, plan.Id, plan.Name, finalPrice);
             if (string.IsNullOrEmpty(payUrl))
             {
                 TempData["Error"] = "Không thể khởi tạo giao dịch với MoMo. Vui lòng thử lại sau.";
@@ -203,11 +213,13 @@ namespace Assignment1_PRN222_Group7.Controllers
                 return RedirectToAction("Index");
             }
 
+            var finalPrice = await _subscriptionService.GetUpgradeAmountAsync(userId, plan.Id);
+
             // Lấy địa chỉ IP của Client
             string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "127.0.0.1";
 
             // Tạo URL thanh toán VNPAY Sandbox qua BLL
-            var payUrl = _vnPayService.CreatePaymentUrl(ipAddress, userId, plan.Id, plan.Name, plan.Price);
+            var payUrl = _vnPayService.CreatePaymentUrl(ipAddress, userId, plan.Id, plan.Name, finalPrice);
             if (string.IsNullOrEmpty(payUrl))
             {
                 TempData["Error"] = "Không thể khởi tạo giao dịch với VNPAY. Vui lòng thử lại sau.";
@@ -328,6 +340,75 @@ namespace Assignment1_PRN222_Group7.Controllers
             }
 
             return Json(new { RspCode = "00", Message = "Confirm success" });
+        }
+
+        // POST /Subscription/CancelAutoRenew
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelAutoRenew()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var success = await _subscriptionService.CancelAutoRenewAsync(userId);
+            if (success)
+            {
+                TempData["Success"] = "Đã hủy gia hạn tự động thành công. Tài khoản sẽ tự động chuyển về gói Free sau khi hết hạn.";
+            }
+            else
+            {
+                TempData["Error"] = "Không thể hủy gia hạn tự động hoặc bạn không có gói dịch vụ nào đang hoạt động.";
+            }
+            return RedirectToAction("Index");
+        }
+
+        // POST /Subscription/ScheduleDowngrade
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ScheduleDowngrade(int planId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var success = await _subscriptionService.ScheduleDowngradeAsync(userId, planId);
+            if (success)
+            {
+                TempData["Success"] = "Đã đặt lịch hạ gói thành công. Gói dịch vụ của bạn sẽ tự động chuyển đổi khi gói Premium hiện tại hết hạn.";
+            }
+            else
+            {
+                TempData["Error"] = "Độc quyền cho gói Premium hoặc gói đặt lịch không hợp lệ.";
+            }
+            return RedirectToAction("Index");
+        }
+
+        // POST /Subscription/CancelScheduledDowngrade
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelScheduledDowngrade()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var success = await _subscriptionService.CancelScheduledDowngradeAsync(userId);
+            if (success)
+            {
+                TempData["Success"] = "Đã hủy lịch hạ gói thành công.";
+            }
+            else
+            {
+                TempData["Error"] = "Không thể hủy lịch hạ gói.";
+            }
+            return RedirectToAction("Index");
         }
     }
 }

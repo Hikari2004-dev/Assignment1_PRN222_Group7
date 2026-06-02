@@ -50,10 +50,32 @@
                                         <span class="text-muted">Thời hạn sử dụng:</span>
                                         <span class="text-dark fw-semibold">30 ngày (1 tháng)</span>
                                     </div>
-                                    <div class="d-flex justify-content-between mb-3">
-                                        <span class="text-muted">Tổng thanh toán:</span>
-                                        <span class="fs-4 fw-extrabold text-success">@Model.Price.ToString("N0") VNĐ</span>
-                                    </div>
+                                    @if (ViewBag.IsUpgrade == true && ViewBag.FinalAmount != null)
+                                    {
+                                        var discount = Model.Price - (decimal)ViewBag.FinalAmount;
+                                        <div class="d-flex justify-content-between mb-2 text-danger small">
+                                            <span>Khấu trừ gói cũ còn dư:</span>
+                                            <span>-@discount.ToString("N0") VNĐ</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-3 border-top pt-2">
+                                            <span class="text-muted">Tổng thanh toán:</span>
+                                            <span class="fs-4 fw-extrabold text-success">@(((decimal)ViewBag.FinalAmount).ToString("N0")) VNĐ</span>
+                                        </div>
+                                    }
+                                    else if (ViewBag.FinalAmount != null)
+                                    {
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span class="text-muted">Tổng thanh toán:</span>
+                                            <span class="fs-4 fw-extrabold text-success">@(((decimal)ViewBag.FinalAmount).ToString("N0")) VNĐ</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span class="text-muted">Tổng thanh toán:</span>
+                                            <span class="fs-4 fw-extrabold text-success">@Model.Price.ToString("N0") VNĐ</span>
+                                        </div>
+                                    }
                                 </div>
 
                                 <div class="alert alert-info border-0 bg-info-soft text-info rounded-3 mt-4 mb-0 small">

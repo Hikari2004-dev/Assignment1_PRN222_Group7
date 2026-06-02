@@ -100,19 +100,22 @@ GO
 
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'UserSubscriptions')
 CREATE TABLE [dbo].[UserSubscriptions] (
-    [Id]            INT           NOT NULL IDENTITY(1,1),
-    [UserId]        INT           NOT NULL,
-    [PlanId]        INT           NOT NULL,
-    [StartDate]     DATETIME2(7)  NOT NULL DEFAULT GETUTCDATE(),
-    [EndDate]       DATETIME2(7)  NULL,
-    [IsActive]      BIT           NOT NULL DEFAULT 1,
+    [Id]              INT           NOT NULL IDENTITY(1,1),
+    [UserId]          INT           NOT NULL,
+    [PlanId]          INT           NOT NULL,
+    [StartDate]       DATETIME2(7)  NOT NULL DEFAULT GETUTCDATE(),
+    [EndDate]         DATETIME2(7)  NULL,
+    [IsActive]        BIT           NOT NULL DEFAULT 1,
     -- PaymentStatus: 0=Pending, 1=Paid, 2=Cancelled, 3=Expired
-    [PaymentStatus] INT           NOT NULL DEFAULT 0,
-    [TransactionId] NVARCHAR(200) NULL,
-    [CreatedAt]     DATETIME2(7)  NOT NULL DEFAULT GETUTCDATE(),
+    [PaymentStatus]   INT           NOT NULL DEFAULT 0,
+    [TransactionId]   NVARCHAR(200) NULL,
+    [CreatedAt]       DATETIME2(7)  NOT NULL DEFAULT GETUTCDATE(),
+    [AutoRenew]       BIT           NOT NULL DEFAULT 1,
+    [ScheduledPlanId] INT           NULL,
     CONSTRAINT [PK_UserSubscriptions] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_UserSubs_Users] FOREIGN KEY ([UserId]) REFERENCES [Users]([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_UserSubs_Plans] FOREIGN KEY ([PlanId]) REFERENCES [SubscriptionPlans]([Id])
+    CONSTRAINT [FK_UserSubs_Plans] FOREIGN KEY ([PlanId]) REFERENCES [SubscriptionPlans]([Id]),
+    CONSTRAINT [FK_UserSubs_ScheduledPlan] FOREIGN KEY ([ScheduledPlanId]) REFERENCES [SubscriptionPlans]([Id])
 );
 GO
 

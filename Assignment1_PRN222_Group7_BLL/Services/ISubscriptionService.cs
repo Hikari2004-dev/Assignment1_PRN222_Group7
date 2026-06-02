@@ -10,5 +10,11 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         Task<List<SubscriptionPlan>> GetActivePlansAsync();
         Task<SubscriptionPlan?> GetPlanByIdAsync(int planId);
         Task<bool> UpgradeSubscriptionAsync(int userId, int planId, string? transactionId = null);
+        Task<decimal> GetUpgradeAmountAsync(int userId, int targetPlanId);
+        Task<bool> CancelAutoRenewAsync(int userId);
+        Task<bool> ScheduleDowngradeAsync(int userId, int targetPlanId);
+        Task<bool> CancelScheduledDowngradeAsync(int userId);
+        Task ProcessExpiredSubscriptionsAsync();
+        Task<UserSubscription?> GetPendingSubscriptionAsync(int userId);
     }
 }

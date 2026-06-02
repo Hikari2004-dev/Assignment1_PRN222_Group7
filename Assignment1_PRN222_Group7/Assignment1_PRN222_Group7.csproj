@@ -14,7 +14,7 @@
     <!-- BCrypt để hash mật khẩu (thay cho Identity PasswordHasher) -->
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <!-- EF Core Design: chỉ cần ở startup project để chạy migrations -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
