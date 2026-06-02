@@ -46,9 +46,21 @@ namespace Assignment1_PRN222_Group7
             // ─── Unit of Work & Business Services ──────────────────────────────
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<ISubjectService, SubjectService>();
+            builder.Services.AddScoped<IChapterService, ChapterService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
             builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+            // ─── Document & Indexing Services ────────────────────────────────
+            builder.Services.AddScoped<ITextExtractorService, TextExtractorService>();
+            builder.Services.AddScoped<IChunkingService, ChunkingService>();
+            builder.Services.AddScoped<IDocumentService, DocumentService>();
+            builder.Services.AddScoped<IDocumentIndexingService, DocumentIndexingService>();
+            builder.Services.AddHttpClient<IVectorDbService, ChromaVectorDbService>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["ChromaDb:Url"] ?? "http://localhost:8000");
+            });
 
             // ─── Background Hosted Services ──────────────────────────────────
             builder.Services.AddHostedService<Assignment1_PRN222_Group7.BackgroundServices.SubscriptionExpirationWorker>();
