@@ -46,9 +46,26 @@ namespace Assignment1_PRN222_Group7
             // ─── Unit of Work & Business Services ──────────────────────────────
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<ISubjectService, SubjectService>();
+            builder.Services.AddScoped<IChapterService, ChapterService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
             builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+            // ─── Document & Indexing Services ────────────────────────────────
+            builder.Services.AddScoped<ITextExtractorService, TextExtractorService>();
+            builder.Services.AddScoped<IChunkingService, ChunkingService>();
+            builder.Services.AddScoped<IDocumentService, DocumentService>();
+            builder.Services.AddScoped<IDocumentIndexingService, DocumentIndexingService>();
+            builder.Services.AddHttpClient<IVectorDbService, ChromaVectorDbService>(client =>
+            {
+                var chromaUrl = builder.Configuration["ChromaDb:Url"];
+                if (string.IsNullOrEmpty(chromaUrl))
+                {
+                    throw new InvalidOperationException("ChromaDb URL configuration is missing.");
+                }
+                client.BaseAddress = new Uri(chromaUrl);
+            });
 
             // ─── Background Hosted Services ──────────────────────────────────
             builder.Services.AddHostedService<Assignment1_PRN222_Group7.BackgroundServices.SubscriptionExpirationWorker>();

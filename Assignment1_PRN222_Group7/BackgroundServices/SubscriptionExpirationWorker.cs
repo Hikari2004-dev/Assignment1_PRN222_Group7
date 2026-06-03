@@ -27,7 +27,7 @@ namespace Assignment1_PRN222_Group7.BackgroundServices
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Checking for expired subscriptions at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation("Checking for expired subscriptions at: {Time}", DateTimeOffset.Now);
 
                 try
                 {
