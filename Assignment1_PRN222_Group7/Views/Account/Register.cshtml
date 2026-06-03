@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Đăng ký";
+    var roles = ViewBag.Roles as List<Assignment1_PRN222_Group7_DAL.Entities.Role> ?? new List<Assignment1_PRN222_Group7_DAL.Entities.Role>();
+}
+
+<div class="d-flex align-items-center justify-content-center min-vh-75 py-5">
+    <div class="card card-register border-0 shadow-lg p-4 p-md-5 rounded-4">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-gradient">Tạo Tài Khoản Mới</h2>
+            <p class="text-muted">Đăng ký để học tập và nghiên cứu thông minh hơn</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger border-0 bg-danger-soft text-danger shadow-sm rounded-3 mb-4" role="alert">
+                <div asp-validation-summary="All" class="text-danger small"></div>
+            </div>
+        }
+
+        <form asp-controller="Account" asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group mb-3">
+                <label for="fullName" class="form-label text-secondary small fw-bold text-uppercase">Họ và Tên</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                        <svg width="16" height="16" fill="currentColor" class="text-muted" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/></svg>
+                    </span>
+                    <input type="text" id="fullName" name="fullName" class="form-control bg-light border-start-0 rounded-end-3 py-2.5" placeholder="Nguyễn Văn A" required />
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="email" class="form-label text-secondary small fw-bold text-uppercase">Địa chỉ Email</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                        <svg width="16" height="16" fill="currentColor" class="text-muted" viewBox="0 0 16 16"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741zM1 11.105l4.708-2.897L1 5.383z"/></svg>
+                    </span>
+                    <input type="email" id="email" name="email" class="form-control bg-light border-start-0 rounded-end-3 py-2.5" placeholder="name@domain.com" required />
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="roleId" class="form-label text-secondary small fw-bold text-uppercase">Vai trò của bạn</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                        <svg width="16" height="16" fill="currentColor" class="text-muted" viewBox="0 0 16 16"><path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.73l1.975-.79a.5.5 0 0 0-.025-.917zM8 8.46 1.758 5.965 8 3.052l6.242 2.913z"/></svg>
+                    </span>
+                    <select id="roleId" name="roleId" class="form-select bg-light border-start-0 rounded-end-3 py-2.5" required>
+                        @foreach (var r in roles)
+                        {
+                            <option value="@r.Id">@r.Description</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="password" class="form-label text-secondary small fw-bold text-uppercase">Mật khẩu</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                        <svg width="16" height="16" fill="currentColor" class="text-muted" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2M5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1"/></svg>
+                    </span>
+                    <input type="password" id="password" name="password" class="form-control bg-light border-start-0 rounded-end-3 py-2.5" placeholder="••••••••" required />
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="confirmPassword" class="form-label text-secondary small fw-bold text-uppercase">Xác nhận mật khẩu</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                        <svg width="16" height="16" fill="currentColor" class="text-muted" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2M5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1"/></svg>
+                    </span>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control bg-light border-start-0 rounded-end-3 py-2.5" placeholder="••••••••" required />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary-gradient text-white w-100 py-2.5 rounded-3 fw-semibold shadow-sm mb-3">Đăng ký tài khoản</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <span class="text-muted small">Đã có tài khoản?</span>
+            <a asp-controller="Account" asp-action="Login" class="text-primary fw-semibold small text-decoration-none ms-1">Đăng nhập</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .min-vh-75 {
+        min-height: 75vh;
+    }
+
+    .card-register {
+        max-width: 500px;
+        width: 100%;
+        background-color: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #2575fc 0%, #1a5cff 100%);
+        border: none;
+        transition: opacity 0.2s;
+    }
+
+    .btn-primary-gradient:hover {
+        opacity: 0.9;
+        color: white;
+    }
+
+    .bg-danger-soft {
+        background-color: rgba(220, 53, 69, 0.06);
+    }
+
+    .input-group-text {
+        border-color: #ced4da;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #2575fc;
+        box-shadow: 0 0 0 0.2rem rgba(37, 117, 252, 0.15);
+    }
+
+    .form-control, .form-select {
+        border-color: #ced4da;
+    }
+</style>

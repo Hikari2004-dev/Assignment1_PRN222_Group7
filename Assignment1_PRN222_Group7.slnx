@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="Assignment1_PRN222_Group7/Assignment1_PRN222_Group7.csproj" />
+  <Project Path="Assignment1_PRN222_Group7_BLL/Assignment1_PRN222_Group7_BLL.csproj" />
+  <Project Path="Assignment1_PRN222_Group7_DAL/Assignment1_PRN222_Group7_DAL.csproj" />
 </Solution>
