@@ -88,6 +88,55 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             }
         }
 
+        public async Task<List<VectorSearchResult>> QueryAsync(string collectionName, float[] queryEmbedding, int limit = 5)
+        {
+            try
+            {
+                var collectionId = await GetOrCreateCollectionAsync(collectionName);
+                if (collectionId == null) return new List<VectorSearchResult>();
+
+                var payload = new
+                {
+                    query_embeddings = new[] { queryEmbedding },
+                    n_results = limit,
+                    include = new[] { "distances" }
+                };
+
+                var response = await _http.PostAsJsonAsync($"/api/v1/collections/{collectionId}/query", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseData = await response.Content.ReadFromJsonAsync<ChromaQueryResponse>();
+                    if (responseData?.Ids != null && responseData.Ids.Count > 0 && responseData.Ids[0] != null)
+                    {
+                        var results = new List<VectorSearchResult>();
+                        for (int i = 0; i < responseData.Ids[0].Count; i++)
+                        {
+                            var score = responseData.Distances != null && responseData.Distances.Count > 0 && responseData.Distances[0].Count > i
+                                ? responseData.Distances[0][i]
+                                : 1.0;
+
+                            // Chroma returns distance (lower is better). We can represent similarity as 1 - distance, or just return the raw score.
+                            // Since we want to store it in MessageSource, let's store the similarity score.
+                            results.Add(new VectorSearchResult
+                            {
+                                Id = responseData.Ids[0][i],
+                                Score = 1.0 - score // Convert distance to similarity
+                            });
+                        }
+                        return results;
+                    }
+                }
+
+                _logger.LogWarning("ChromaDB query failed: {Status}", response.StatusCode);
+                return new List<VectorSearchResult>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "ChromaDB query failed for collection={Collection}", collectionName);
+                return new List<VectorSearchResult>();
+            }
+        }
+
         private async Task<string?> GetOrCreateCollectionAsync(string name)
         {
             try
@@ -114,5 +163,14 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                 vec[i] = (float)(rng.NextDouble() * 2 - 1);
             return vec;
         }
+    }
+
+    public class ChromaQueryResponse
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("ids")]
+        public List<List<string>>? Ids { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("distances")]
+        public List<List<double>>? Distances { get; set; }
     }
 }

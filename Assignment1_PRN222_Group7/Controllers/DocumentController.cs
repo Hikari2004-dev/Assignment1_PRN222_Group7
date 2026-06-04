@@ -165,6 +165,33 @@ namespace Assignment1_PRN222_Group7.Controllers
             return RedirectToAction(nameof(Index), new { subjectId });
         }
 
+        // GET /Subject/{subjectId}/Document/Download/{id}
+        [HttpGet("Download/{id:int}")]
+        public async Task<IActionResult> Download(int subjectId, int id)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var doc = await _documentService.GetDocumentByIdAsync(id);
+            if (doc == null || doc.SubjectId != subjectId) return NotFound();
+
+            var fullPath = Path.Combine(_env.WebRootPath, doc.FilePath);
+            if (!System.IO.File.Exists(fullPath))
+            {
+                return NotFound("File not found on server.");
+            }
+
+            var contentType = doc.FileType switch
+            {
+                Assignment1_PRN222_Group7_DAL.Enums.FileType.PDF => "application/pdf",
+                Assignment1_PRN222_Group7_DAL.Enums.FileType.DOCX => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                Assignment1_PRN222_Group7_DAL.Enums.FileType.PPTX => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                Assignment1_PRN222_Group7_DAL.Enums.FileType.TXT => "text/plain",
+                _ => "application/octet-stream"
+            };
+
+            // Return file stream to download/view
+            return File(System.IO.File.OpenRead(fullPath), contentType, doc.OriginalFileName);
+        }
+
         // GET /Subject/5/Document/Delete/3
         [HttpGet("Delete/{id:int}")]
         [Authorize(Policy = "AdminOnly")]

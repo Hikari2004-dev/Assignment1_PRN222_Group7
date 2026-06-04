@@ -74,7 +74,12 @@ else
                 @foreach (var doc in Model)
                 {
                     <tr>
-                        <td class="fw-semibold">@doc.Title</td>
+                        <td class="fw-semibold">
+                            <a asp-controller="Document" asp-action="Download" asp-route-subjectId="@subject.Id" asp-route-id="@doc.Id" 
+                               target="_blank" class="text-decoration-none">
+                                📄 @doc.Title
+                            </a>
+                        </td>
                         <td><span class="badge bg-info text-dark rounded-pill">@doc.FileType</span></td>
                         <td class="text-muted small">@FormatFileSize(doc.FileSizeBytes)</td>
                         <td class="text-muted small">@(doc.Chapter?.Title ?? "—")</td>

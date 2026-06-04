@@ -51,6 +51,8 @@ namespace Assignment1_PRN222_Group7
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
             builder.Services.AddScoped<IVnPayService, VnPayService>();
+            builder.Services.AddHttpClient<IAiService, GeminiService>();
+            builder.Services.AddScoped<IChatService, ChatService>();
 
             // ─── Document & Indexing Services ────────────────────────────────
             builder.Services.AddScoped<ITextExtractorService, TextExtractorService>();
