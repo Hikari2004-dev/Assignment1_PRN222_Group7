@@ -1,0 +1,299 @@
+@model Assignment1_PRN222_Group7.Models.ExperimentViewModels.ExperimentDetailViewModel
+@{
+    ViewData["Title"] = "Experiment Details";
+}
+
+<div class="container mt-4">
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Experiments</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    @* Alerts *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @* Header Card *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-flask"></i> @Model.Name</h4>
+            <div>
+                @{
+                    var statusClass = Model.Status switch
+                    {
+                        "Draft" => "bg-secondary",
+                        "Running" => "bg-warning text-dark",
+                        "Completed" => "bg-success",
+                        "Failed" => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+                }
+                <span class="badge @statusClass fs-6">@Model.Status</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Subject:</strong> @Model.SubjectName</p>
+                    <p><strong>Created By:</strong> @Model.CreatorName</p>
+                    <p><strong>Created At:</strong> @Model.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Description:</strong> @(Model.Description ?? "No description")</p>
+                    @if (Model.CompletedAt.HasValue)
+                    {
+                        <p><strong>Completed At:</strong> @Model.CompletedAt.Value.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</p>
+                    }
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">@Model.ConfigurationCount</h3>
+                            <small class="text-muted">Configurations</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">@Model.TestQuestionCount</h3>
+                            <small class="text-muted">Test Questions</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h3 class="mb-0">@Model.ResultCount</h3>
+                            <small class="text-muted">Results</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 d-flex gap-2">
+                @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* Run Experiment Button *@
+    @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+    {
+        <div class="card shadow-sm mb-4 border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1"><i class="bi bi-play-circle text-success"></i> Run Experiment</h5>
+                        <small class="text-muted">
+                            @if (Model.ConfigurationCount == 0 || Model.TestQuestionCount == 0)
+                            {
+                                <text>Please add at least one configuration and one test question before running.</text>
+                            }
+                            else
+                            {
+                                <text>Run experiment with @Model.ConfigurationCount configuration(s) and @Model.TestQuestionCount question(s).</text>
+                            }
+                        </small>
+                    </div>
+                    @if (Model.ConfigurationCount > 0 && Model.TestQuestionCount > 0)
+                    {
+                        <form asp-action="RunExperiment" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-play-fill"></i> Run Experiment
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary btn-lg" disabled>
+                            <i class="bi bi-play-fill"></i> Run Experiment
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Dashboard Button *@
+    @if (Model.ResultCount > 0)
+    {
+        <div class="mb-4">
+            <a asp-action="Dashboard" asp-route-id="@Model.Id" class="btn btn-info btn-lg">
+                <i class="bi bi-graph-up"></i> View Dashboard
+            </a>
+        </div>
+    }
+
+    @* Configurations Section *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-gear"></i> Configurations</h5>
+            @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+            {
+                <a asp-action="AddConfiguration" asp-route-experimentId="@Model.Id" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> Add Configuration
+                </a>
+            }
+        </div>
+        <div class="card-body">
+            @if (!Model.Configurations.Any())
+            {
+                <div class="alert alert-warning mb-0">
+                    No configurations added yet.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Chunking</th>
+                                <th>Embedding</th>
+                                <th>Retrieval</th>
+                                <th>TopK</th>
+                                <th>Threshold</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var config in Model.Configurations)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@config.ConfigName</td>
+                                    <td>@config.ChunkingStrategy<br><small class="text-muted">@config.ChunkSize chars, @config.ChunkOverlap overlap</small></td>
+                                    <td>@config.EmbeddingModel</td>
+                                    <td>@config.RetrievalMethod</td>
+                                    <td>@config.TopK</td>
+                                    <td>@config.SimilarityThreshold.ToString("F2")</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="EditConfiguration" asp-route-id="@config.Id" class="btn btn-outline-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form asp-action="DeleteConfiguration" asp-route-id="@config.Id" asp-route-experimentId="@Model.Id" 
+                                                  method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger" 
+                                                        onclick="return confirm('Are you sure you want to delete this configuration?');">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Test Questions Section *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-question-circle"></i> Test Questions</h5>
+            @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+            {
+                <a asp-action="AddTestQuestion" asp-route-experimentId="@Model.Id" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus"></i> Add Question
+                </a>
+            }
+        </div>
+        <div class="card-body">
+            @if (!Model.TestQuestions.Any())
+            {
+                <div class="alert alert-warning mb-0">
+                    No test questions added yet.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Question</th>
+                                <th>Ground Truth</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var question in Model.TestQuestions)
+                            {
+                                <tr>
+                                    <td>@question.OrderIndex</td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 400px;" title="@question.Question">
+                                            @question.Question
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 300px;" title="@question.GroundTruth">
+                                            @question.GroundTruth
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="EditTestQuestion" asp-route-id="@question.Id" class="btn btn-outline-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form asp-action="DeleteTestQuestion" asp-route-id="@question.Id" asp-route-experimentId="@Model.Id" 
+                                                  method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger"
+                                                        onclick="return confirm('Are you sure you want to delete this question?');">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Back Button *@
+    <div class="mb-4">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Experiments
+        </a>
+    </div>
+</div>
