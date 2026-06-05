@@ -49,6 +49,7 @@ namespace Assignment1_PRN222_Group7
             builder.Services.AddScoped<ISubjectService, SubjectService>();
             builder.Services.AddScoped<IChapterService, ChapterService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+            builder.Services.AddScoped<IExperimentService, ExperimentService>();
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
             builder.Services.AddScoped<IVnPayService, VnPayService>();
             builder.Services.AddHttpClient<IAiService, GeminiService>();
