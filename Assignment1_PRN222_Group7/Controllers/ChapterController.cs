@@ -3,6 +3,7 @@ using Assignment1_PRN222_Group7_DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Assignment1_PRN222_Group7.Controllers
@@ -17,22 +18,40 @@ namespace Assignment1_PRN222_Group7.Controllers
     {
         private readonly IChapterService _chapterService;
         private readonly ISubjectService _subjectService;
+        private readonly IAccountService _accountService;
 
-        public ChapterController(IChapterService chapterService, ISubjectService subjectService)
+        public ChapterController(IChapterService chapterService, ISubjectService subjectService, IAccountService accountService)
         {
             _chapterService = chapterService;
             _subjectService = subjectService;
+            _accountService = accountService;
         }
 
         // ─── Helper: lấy subject và trả 404 nếu không tồn tại ───────────────
         private async Task<Subject?> GetSubjectOrNullAsync(int subjectId)
             => await _subjectService.GetSubjectByIdAsync(subjectId);
 
+        private int GetUserId() =>
+            int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        private async Task<bool> HasSubjectAccessAsync(int subjectId)
+        {
+            if (User.IsInRole("Admin")) return true;
+            if (User.IsInRole("Lecturer"))
+            {
+                var userId = GetUserId();
+                return await _accountService.IsLecturerAssignedToSubjectAsync(userId, subjectId);
+            }
+            return true;
+        }
+
         // GET /Subject/5/Chapter
         [HttpGet("")]
         public async Task<IActionResult> Index(int subjectId)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await GetSubjectOrNullAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -47,6 +66,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Create(int subjectId)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await GetSubjectOrNullAsync(subjectId);
             if (subject == null) return NotFound();
             ViewBag.Subject = subject;
@@ -60,6 +81,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Create(int subjectId, string title,
                                                 string? description, int orderIndex)
         {
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await GetSubjectOrNullAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -96,6 +119,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Edit(int subjectId, int id)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await GetSubjectOrNullAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -114,6 +139,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Edit(int subjectId, int id,
                                               string title, string? description, int orderIndex)
         {
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await GetSubjectOrNullAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -148,6 +175,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Delete(int subjectId, int id)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await GetSubjectOrNullAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -166,6 +195,7 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> DeleteConfirmed(int subjectId, int id)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
             await _chapterService.DeleteChapterAsync(id);
             TempData["Success"] = "Đã xóa chương.";
             return RedirectToAction(nameof(Index), new { subjectId });

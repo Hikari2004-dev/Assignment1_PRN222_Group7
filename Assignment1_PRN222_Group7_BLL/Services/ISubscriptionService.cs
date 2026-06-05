@@ -16,5 +16,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         Task<bool> CancelScheduledDowngradeAsync(int userId);
         Task ProcessExpiredSubscriptionsAsync();
         Task<UserSubscription?> GetPendingSubscriptionAsync(int userId);
+        Task<(bool CanUpload, string? Message)> CheckDocumentUploadLimitAsync(int userId);
+        Task<(bool CanChat, string? Message)> CheckChatLimitAsync(int userId);
     }
 }

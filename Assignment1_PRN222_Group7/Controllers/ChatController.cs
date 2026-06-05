@@ -16,11 +16,13 @@ namespace Assignment1_PRN222_Group7.Controllers
     {
         private readonly IChatService _chatService;
         private readonly ISubjectService _subjectService;
+        private readonly ISubscriptionService _subscriptionService;
 
-        public ChatController(IChatService chatService, ISubjectService subjectService)
+        public ChatController(IChatService chatService, ISubjectService subjectService, ISubscriptionService subscriptionService)
         {
             _chatService = chatService;
             _subjectService = subjectService;
+            _subscriptionService = subscriptionService;
         }
 
         // GET: /Chat
@@ -105,6 +107,14 @@ namespace Assignment1_PRN222_Group7.Controllers
             }
 
             var userId = GetCurrentUserId();
+
+            // Check subscription limit
+            var (canChat, chatLimitMsg) = await _subscriptionService.CheckChatLimitAsync(userId);
+            if (!canChat)
+            {
+                return Json(new { error = chatLimitMsg, limitExceeded = true });
+            }
+
             var session = await _chatService.GetSessionWithMessagesAsync(sessionId);
             if (session == null || session.UserId != userId)
             {

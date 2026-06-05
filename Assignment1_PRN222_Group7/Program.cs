@@ -46,6 +46,7 @@ namespace Assignment1_PRN222_Group7
             // ─── Unit of Work & Business Services ──────────────────────────────
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<ISubjectService, SubjectService>();
             builder.Services.AddScoped<IChapterService, ChapterService>();
             builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
@@ -53,6 +54,7 @@ namespace Assignment1_PRN222_Group7
             builder.Services.AddHttpClient<IMoMoService, MoMoService>();
             builder.Services.AddScoped<IVnPayService, VnPayService>();
             builder.Services.AddHttpClient<IAiService, GeminiService>();
+            builder.Services.AddHttpClient<IEmbeddingService, EmbeddingService>();
             builder.Services.AddScoped<IChatService, ChatService>();
 
             // ─── Document & Indexing Services ────────────────────────────────
@@ -83,6 +85,17 @@ namespace Assignment1_PRN222_Group7
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 await db.Database.EnsureCreatedAsync();
+                await db.Database.ExecuteSqlRawAsync(@"
+                    IF OBJECT_ID('LecturerSubjects', 'U') IS NULL
+                    BEGIN
+                        CREATE TABLE [LecturerSubjects] (
+                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [LecturerId] INT NOT NULL FOREIGN KEY REFERENCES [Users]([Id]) ON DELETE CASCADE,
+                            [SubjectId] INT NOT NULL FOREIGN KEY REFERENCES [Subjects]([Id]) ON DELETE CASCADE
+                        );
+                        CREATE UNIQUE INDEX [IX_LecturerSubjects_LecturerId_SubjectId] ON [LecturerSubjects] ([LecturerId], [SubjectId]);
+                    END
+                ");
                 await SeedAsync(db);
             }
 

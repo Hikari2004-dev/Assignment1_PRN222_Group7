@@ -56,10 +56,11 @@ namespace Assignment1_PRN222_Group7_DAL.Enums
 
     public enum EmbeddingModel
     {
-        MultilingualE5Base = 0,       // multilingual-e5-base (free)
-        TextEmbedding3Small = 1,      // text-embedding-3-small (OpenAI)
-        PhoBERTBase = 2,              // PhoBERT-base (tiếng Việt)
-        BgeM3 = 3                     // bge-m3 (BAAI)
+        MultilingualE5Base = 0,       // multilingual-e5-base (HuggingFace, cần token)
+        TextEmbedding3Small = 1,      // text-embedding-3-small (OpenAI, cần API key)
+        PhoBERTBase = 2,             // PhoBERT-base (HuggingFace, cần token)
+        BgeM3 = 3,                   // bge-m3 (HuggingFace, cần token)
+        GeminiEmbedding004 = 4       // text-embedding-004 (Gemini, miễn phí)
     }
 
     public enum RetrievalMethod

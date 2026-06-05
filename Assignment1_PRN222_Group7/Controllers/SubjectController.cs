@@ -12,10 +12,12 @@ namespace Assignment1_PRN222_Group7.Controllers
     public class SubjectController : Controller
     {
         private readonly ISubjectService _subjectService;
+        private readonly IAccountService _accountService;
 
-        public SubjectController(ISubjectService subjectService)
+        public SubjectController(ISubjectService subjectService, IAccountService accountService)
         {
             _subjectService = subjectService;
+            _accountService = accountService;
         }
 
         // GET /Subject
@@ -23,6 +25,15 @@ namespace Assignment1_PRN222_Group7.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var subjects = await _subjectService.GetAllSubjectsAsync();
+
+            if (User.IsInRole("Lecturer"))
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var assigned = await _accountService.GetSubjectsAssignedToLecturerAsync(userId);
+                var assignedIds = assigned.Select(s => s.Id).ToHashSet();
+                subjects = subjects.Where(s => assignedIds.Contains(s.Id)).ToList();
+            }
+
             return View(subjects);
         }
 
@@ -32,6 +43,14 @@ namespace Assignment1_PRN222_Group7.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var subject = await _subjectService.GetSubjectByIdAsync(id);
             if (subject == null) return NotFound();
+
+            if (User.IsInRole("Lecturer"))
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var isAssigned = await _accountService.IsLecturerAssignedToSubjectAsync(userId, id);
+                if (!isAssigned) return Forbid();
+            }
+
             return View(subject);
         }
 
@@ -89,6 +108,14 @@ namespace Assignment1_PRN222_Group7.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
             var subject = await _subjectService.GetSubjectByIdAsync(id);
             if (subject == null) return NotFound();
+
+            if (User.IsInRole("Lecturer"))
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var isAssigned = await _accountService.IsLecturerAssignedToSubjectAsync(userId, id);
+                if (!isAssigned) return Forbid();
+            }
+
             ViewData["ActionType"] = "Edit";
             return View(subject);
         }
@@ -102,6 +129,13 @@ namespace Assignment1_PRN222_Group7.Controllers
         {
             var subject = await _subjectService.GetSubjectByIdAsync(id);
             if (subject == null) return NotFound();
+
+            if (User.IsInRole("Lecturer"))
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var isAssigned = await _accountService.IsLecturerAssignedToSubjectAsync(userId, id);
+                if (!isAssigned) return Forbid();
+            }
 
             if (!ModelState.IsValid)
             {

@@ -19,29 +19,48 @@ namespace Assignment1_PRN222_Group7.Controllers
         private readonly IChapterService _chapterService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IWebHostEnvironment _env;
+        private readonly IAccountService _accountService;
+        private readonly ISubscriptionService _subscriptionService;
 
         public DocumentController(
             IDocumentService documentService,
             ISubjectService subjectService,
             IChapterService chapterService,
             IServiceScopeFactory scopeFactory,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IAccountService accountService,
+            ISubscriptionService subscriptionService)
         {
             _documentService = documentService;
             _subjectService  = subjectService;
             _chapterService  = chapterService;
             _scopeFactory    = scopeFactory;
             _env             = env;
+            _accountService  = accountService;
+            _subscriptionService = subscriptionService;
         }
 
         private int GetUserId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        private async Task<bool> HasSubjectAccessAsync(int subjectId)
+        {
+            if (User.IsInRole("Admin")) return true;
+            if (User.IsInRole("Lecturer"))
+            {
+                var userId = GetUserId();
+                return await _accountService.IsLecturerAssignedToSubjectAsync(userId, subjectId);
+            }
+            return true;
+        }
 
         // GET /Subject/5/Document?chapterId=3
         [HttpGet("")]
         public async Task<IActionResult> Index(int subjectId, int? chapterId)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await _subjectService.GetSubjectByIdAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -64,6 +83,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Upload(int subjectId)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await _subjectService.GetSubjectByIdAsync(subjectId);
             if (subject == null) return NotFound();
 
@@ -78,8 +99,21 @@ namespace Assignment1_PRN222_Group7.Controllers
         [Authorize(Policy = "LecturerUp")]
         public async Task<IActionResult> Upload(int subjectId, string title, int? chapterId, IFormFile file)
         {
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var subject = await _subjectService.GetSubjectByIdAsync(subjectId);
             if (subject == null) return NotFound();
+
+            // Check subscription upload limit
+            var userId = GetUserId();
+            var (canUpload, uploadLimitMsg) = await _subscriptionService.CheckDocumentUploadLimitAsync(userId);
+            if (!canUpload)
+            {
+                ModelState.AddModelError("file", uploadLimitMsg ?? "Upload limit reached.");
+                ViewBag.Subject = subject;
+                ViewBag.Chapters = await _chapterService.GetChaptersBySubjectAsync(subjectId);
+                return View();
+            }
 
             if (!ModelState.IsValid)
             {
@@ -115,7 +149,6 @@ namespace Assignment1_PRN222_Group7.Controllers
                 return View();
             }
 
-            var userId = GetUserId();
             using var stream = file.OpenReadStream();
             var uploadModel = new DocumentUploadModel(
                 stream,
@@ -150,6 +183,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> ReIndex(int subjectId, int id)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var doc = await _documentService.GetDocumentByIdAsync(id);
             if (doc == null || doc.SubjectId != subjectId) return NotFound();
 
@@ -170,6 +205,8 @@ namespace Assignment1_PRN222_Group7.Controllers
         public async Task<IActionResult> Download(int subjectId, int id)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!await HasSubjectAccessAsync(subjectId)) return Forbid();
+
             var doc = await _documentService.GetDocumentByIdAsync(id);
             if (doc == null || doc.SubjectId != subjectId) return NotFound();
 

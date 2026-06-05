@@ -11,6 +11,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         private readonly ITextExtractorService _textExtractor;
         private readonly IChunkingService _chunking;
         private readonly IVectorDbService _vectorDb;
+        private readonly IEmbeddingService _embedding;
         private readonly ILogger<DocumentIndexingService> _logger;
         private readonly string _collectionName;
         private readonly int _chunkSize;
@@ -21,6 +22,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             ITextExtractorService textExtractor,
             IChunkingService chunking,
             IVectorDbService vectorDb,
+            IEmbeddingService embedding,
             IConfiguration config,
             ILogger<DocumentIndexingService> logger)
         {
@@ -28,6 +30,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             _textExtractor  = textExtractor;
             _chunking       = chunking;
             _vectorDb       = vectorDb;
+            _embedding      = embedding;
             _logger         = logger;
             _collectionName = "hikari_docs";
             _chunkSize      = int.TryParse(config["Chunking:ChunkSize"], out var cs) ? cs : 500;
@@ -58,7 +61,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                 }
 
                 // 2. Chunk
-                var chunks = _chunking.ChunkText(text, _chunkSize, _overlap);
+                var chunks = _chunking.ChunkText(text, Assignment1_PRN222_Group7_DAL.Enums.ChunkingStrategy.Fixed, _chunkSize, _overlap);
 
                 // 3. Remove old chunks (re-index support)
                 var existingChunks = await chunkRepo.FindAsync(c => c.DocumentId == documentId);
@@ -71,7 +74,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                 }
 
                 // 4. Create new chunks + upsert to vector DB
-                const string embeddingModel = "multilingual-e5-base";
+                const string embeddingModel = "gemini-text-embedding-004";
                 int indexed = 0;
 
                 for (int i = 0; i < chunks.Count; i++)
@@ -84,7 +87,8 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                         ["subject_id"]  = doc.SubjectId.ToString()
                     };
 
-                    var embeddingId = await _vectorDb.UpsertAsync(_collectionName, chunkId, chunks[i], metadata);
+                    var embedding = await _embedding.GetEmbeddingAsync(chunks[i], Assignment1_PRN222_Group7_DAL.Enums.EmbeddingModel.GeminiEmbedding004);
+                    var embeddingId = await _vectorDb.UpsertAsync(_collectionName, chunkId, embedding, chunks[i], metadata);
 
                     var chunk = new DocumentChunk
                     {

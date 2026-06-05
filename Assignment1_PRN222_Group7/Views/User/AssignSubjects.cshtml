@@ -1,0 +1,65 @@
+@{
+    var user = ViewBag.User as Assignment1_PRN222_Group7_DAL.Entities.User;
+    var allSubjects = ViewBag.AllSubjects as List<Assignment1_PRN222_Group7_DAL.Entities.Subject>;
+    var assignedIds = ViewBag.AssignedIds as HashSet<int>;
+    ViewData["Title"] = "Phân quyền môn học";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow border-0 rounded-3 my-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill me-3">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <h2 class="h4 fw-bold mb-0">Phân quyền môn học</h2>
+                </div>
+
+                <div class="mb-4">
+                    <p class="mb-1 text-muted small">Giảng viên:</p>
+                    <h5 class="fw-bold">@user?.FullName</h5>
+                    <span class="text-muted small">@user?.Email</span>
+                </div>
+
+                <form asp-action="AssignSubjects" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@user?.Id" />
+
+                    <label class="form-label fw-bold small mb-2"><i class="bi bi-journal-bookmark me-1"></i>Danh sách môn học</label>
+                    <p class="text-muted small mb-3">Chọn các môn học giảng viên này được phép truy cập và đăng tải tài liệu:</p>
+
+                    <div class="list-group mb-4" style="max-height: 300px; overflow-y: auto;">
+                        @if (allSubjects == null || allSubjects.Count == 0)
+                        {
+                            <div class="list-group-item text-center py-3 text-muted small">
+                                Chưa có môn học nào trong hệ thống.
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var subject in allSubjects)
+                            {
+                                <label class="list-group-item d-flex align-items-center gap-3 py-3 rounded-2 mb-2 border shadow-sm" style="cursor: pointer;">
+                                    <input class="form-check-input flex-shrink-0" type="checkbox" name="subjectIds" value="@subject.Id" checked="@(assignedIds?.Contains(subject.Id) == true)">
+                                    <div>
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill mb-1">@subject.Code</span>
+                                        <div class="fw-semibold text-dark">@subject.Name</div>
+                                        @if (!string.IsNullOrEmpty(subject.Description))
+                                        {
+                                            <div class="text-muted small">@subject.Description</div>
+                                        }
+                                    </div>
+                                </label>
+                            }
+                        }
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold" @(allSubjects == null || allSubjects.Count == 0 ? "disabled" : "")>
+                        Lưu phân quyền
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

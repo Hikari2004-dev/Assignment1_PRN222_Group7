@@ -29,6 +29,7 @@ namespace Assignment1_PRN222_Group7_DAL.Context
         public DbSet<ExperimentConfiguration> ExperimentConfigurations { get; set; }
         public DbSet<TestQuestion> TestQuestions { get; set; }
         public DbSet<ExperimentResult> ExperimentResults { get; set; }
+        public DbSet<LecturerSubject> LecturerSubjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -278,6 +279,21 @@ namespace Assignment1_PRN222_Group7_DAL.Context
                     .WithMany(q => q.Results)
                     .HasForeignKey(x => x.QuestionId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ─── LecturerSubject ──────────────────────────────────────────────
+            builder.Entity<LecturerSubject>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasOne(x => x.Lecturer)
+                    .WithMany()
+                    .HasForeignKey(x => x.LecturerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Subject)
+                    .WithMany()
+                    .HasForeignKey(x => x.SubjectId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasIndex(x => new { x.LecturerId, x.SubjectId }).IsUnique();
             });
         }
     }

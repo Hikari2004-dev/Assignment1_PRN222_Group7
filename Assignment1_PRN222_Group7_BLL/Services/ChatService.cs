@@ -15,6 +15,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IVectorDbService _vectorDb;
         private readonly IAiService _aiService;
+        private readonly IEmbeddingService _embeddingService;
         private readonly ILogger<ChatService> _logger;
         private const string CollectionName = "hikari_docs";
 
@@ -22,11 +23,13 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             IUnitOfWork unitOfWork,
             IVectorDbService vectorDb,
             IAiService aiService,
+            IEmbeddingService embeddingService,
             ILogger<ChatService> logger)
         {
             _unitOfWork = unitOfWork;
             _vectorDb = vectorDb;
             _aiService = aiService;
+            _embeddingService = embeddingService;
             _logger = logger;
         }
 
@@ -111,81 +114,119 @@ namespace Assignment1_PRN222_Group7_BLL.Services
 
             // 3. Search Context (RAG)
             var matchedChunks = new List<(DocumentChunk Chunk, double Score)>();
+            const double MinScoreThreshold = 0.3;
 
             try
             {
-                // Generate query embedding (768 dimensions)
-                var queryEmbedding = GenerateStubEmbedding(768);
+                var queryEmbedding = await _embeddingService.GetEmbeddingAsync(userContent, EmbeddingModel.GeminiEmbedding004);
                 var chromaResults = await _vectorDb.QueryAsync(CollectionName, queryEmbedding, 10);
 
                 if (chromaResults != null && chromaResults.Count > 0)
                 {
                     var chunkRepo = _unitOfWork.GetRepository<DocumentChunk>();
+                    var seenDocIds = new HashSet<int>();
+
                     foreach (var result in chromaResults)
                     {
+                        if (result.Score < MinScoreThreshold) continue;
+
                         var chunk = await chunkRepo.FirstOrDefaultAsync(c => c.EmbeddingId == result.Id, "Document");
-                        if (chunk != null)
-                        {
-                            // Filter by subject if specified in the session
-                            if (session.SubjectId == null || chunk.Document.SubjectId == session.SubjectId)
-                            {
-                                matchedChunks.Add((chunk, result.Score));
-                            }
-                        }
+                        if (chunk == null) continue;
+                        if (session.SubjectId != null && chunk.Document.SubjectId != session.SubjectId) continue;
+                        if (seenDocIds.Contains(chunk.DocumentId)) continue;
+                        seenDocIds.Add(chunk.DocumentId);
+
+                        matchedChunks.Add((chunk, result.Score));
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to retrieve from Chroma DB. Falling back to DB keyword search.");
+                _logger.LogWarning(ex, "Failed to retrieve from Chroma DB. Falling back to keyword search.");
             }
 
-            // Fallback: If no vector matches found, use keyword search on DocumentChunks
+            // Keyword fallback — only if vector search found nothing above threshold
             if (matchedChunks.Count == 0)
             {
+                var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+                    "have", "has", "had", "do", "does", "did", "will", "would", "could", "should",
+                    "may", "might", "must", "shall", "can", "need", "dare", "ought", "used",
+                    "to", "of", "in", "for", "on", "with", "at", "by", "from", "as", "into",
+                    "through", "during", "before", "after", "above", "below", "between", "under",
+                    "again", "further", "then", "once", "here", "there", "when", "where", "why",
+                    "how", "all", "each", "few", "more", "most", "other", "some", "such",
+                    "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very",
+                    "just", "and", "but", "or", "if", "because", "until", "while", "this", "that",
+                    "these", "those", "what", "which", "who", "whom", "its", "it", "he", "she",
+                    "they", "them", "his", "her", "their", "my", "your", "our", "about", "out",
+                    "net", "core"
+                };
+
                 var queryWords = userContent.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                            .Where(w => w.Length > 3)
-                                            .Take(5)
-                                            .ToList();
-
-                var allChunks = await _unitOfWork.GetRepository<DocumentChunk>().FindAsync(
-                    c => session.SubjectId == null || c.Document.SubjectId == session.SubjectId,
-                    "Document"
-                );
-
-                var fallbackResults = allChunks
-                    .Select(c => new
-                    {
-                        Chunk = c,
-                        Score = queryWords.Count > 0
-                            ? (double)queryWords.Count(w => c.Content.Contains(w, StringComparison.OrdinalIgnoreCase)) / queryWords.Count
-                            : (c.Content.Contains(userContent, StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0)
-                    })
-                    .Where(x => x.Score > 0)
-                    .OrderByDescending(x => x.Score)
-                    .Take(5)
+                    .Where(w => w.Length > 2 && !stopWords.Contains(w))
+                    .Take(10)
                     .ToList();
 
-                foreach (var fallback in fallbackResults)
+                if (queryWords.Count > 0)
                 {
-                    matchedChunks.Add((fallback.Chunk, fallback.Score));
+                    var allChunks = await _unitOfWork.GetRepository<DocumentChunk>().FindAsync(
+                        c => session.SubjectId == null || c.Document.SubjectId == session.SubjectId,
+                        "Document"
+                    );
+
+                    var seenDocIds = new HashSet<int>();
+                    foreach (var chunk in allChunks)
+                    {
+                        if (seenDocIds.Contains(chunk.DocumentId)) continue;
+
+                        var wordMatchCount = queryWords.Count(w =>
+                            chunk.Content.Contains(w, StringComparison.OrdinalIgnoreCase));
+                        var keywordScore = (double)wordMatchCount / queryWords.Count;
+
+                        if (keywordScore >= 0.3)
+                        {
+                            seenDocIds.Add(chunk.DocumentId);
+                            matchedChunks.Add((chunk, keywordScore));
+                        }
+
+                        if (matchedChunks.Count >= 5) break;
+                    }
                 }
             }
 
-            // Keep top 3 most relevant context sources
-            var finalSources = matchedChunks.OrderByDescending(x => x.Score).Take(3).ToList();
+            // No relevant context found — reply with a clear message
+            if (matchedChunks.Count == 0)
+            {
+                var noContextMsg = new ChatMessage
+                {
+                    SessionId = sessionId,
+                    Role = MessageRole.Assistant,
+                    Content = "I couldn't find any relevant documents to answer your question. Please make sure the course materials have been uploaded and indexed first, or try rephrasing your question using terms from the uploaded documents.",
+                    CreatedAt = DateTime.UtcNow,
+                    RetrievalMethod = RetrievalMethod.RAG,
+                    ProcessingTimeMs = (int)stopwatch.ElapsedMilliseconds,
+                    TokensUsed = 0
+                };
+                await _unitOfWork.GetRepository<ChatMessage>().AddAsync(noContextMsg);
+                await _unitOfWork.SaveChangesAsync();
+                return noContextMsg;
+            }
+
+            // Deduplicate: keep best-scoring chunk per document
+            var topChunks = matchedChunks
+                .GroupBy(x => x.Chunk.DocumentId)
+                .Select(g => g.OrderByDescending(x => x.Score).First())
+                .OrderByDescending(x => x.Score)
+                .Take(3)
+                .ToList();
 
             // 4. Construct System Prompt with Context
-            var systemPrompt = userContent;
-            if (finalSources.Count > 0)
-            {
-                var contextText = string.Join("\n\n", finalSources.Select((x, index) =>
-                    $"[Source {index + 1}] Document: {x.Chunk.Document.Title} (Chunk #{x.Chunk.ChunkIndex + 1})\nContent: {x.Chunk.Content}"));
+            var contextText = string.Join("\n\n", topChunks.Select((x, index) =>
+                $"[Source {index + 1}] Document: {x.Chunk.Document.Title} (Chunk #{x.Chunk.ChunkIndex + 1})\nContent: {x.Chunk.Content}"));
 
-                systemPrompt = $"Context from uploaded documents:\n\n{contextText}\n\n" +
-                               $"Question: {userContent}\n\n" +
-                               $"Please answer the question based on the provided context. If the context does not contain enough information, use your general knowledge but clearly state that you are doing so. Cite the context sources using bracketed numbers like [1], [2], etc., matching the Source numbers above.";
-            }
+            var systemPrompt = $"You are an educational AI assistant for a university learning platform. Your task is to answer questions ONLY using the provided context from uploaded documents.\n\nCRITICAL RULES:\n1. Answer ONLY based on the provided context. Do NOT use any external knowledge.\n2. If the context does not contain enough information to answer the question, you MUST respond with: \"I cannot answer this question based on the provided documents.\"\n3. You must NEVER make up information, add examples, or provide details not found in the context.\n4. If you are unsure or the question is outside the scope of the documents, say so clearly.\n\nContext from uploaded documents:\n\n{contextText}\n\nQuestion: {userContent}\n\nAnswer the question following the rules above. Cite sources using bracketed numbers like [1], [2], etc. matching the Source numbers above.";
 
             // 5. Generate content using LLM
             var history = session.Messages.Where(m => m.Id != userMsg.Id).OrderBy(m => m.CreatedAt).ToList();
@@ -210,7 +251,7 @@ namespace Assignment1_PRN222_Group7_BLL.Services
 
             // Save references to sources used
             int sourceIndex = 1;
-            foreach (var source in finalSources)
+            foreach (var source in topChunks)
             {
                 var msgSource = new MessageSource
                 {
@@ -227,13 +268,6 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             return assistantMsg;
         }
 
-        private static float[] GenerateStubEmbedding(int dimensions)
-        {
-            var rng = Random.Shared;
-            var vec = new float[dimensions];
-            for (int i = 0; i < dimensions; i++)
-                vec[i] = (float)(rng.NextDouble() * 2 - 1);
-            return vec;
-        }
+
     }
 }

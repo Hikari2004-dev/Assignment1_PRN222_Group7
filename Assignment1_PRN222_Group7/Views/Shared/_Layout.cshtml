@@ -32,6 +32,12 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="Experiment" asp-action="Index">Thí nghiệm</a>
                             </li>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="User" asp-action="Index">Thành viên</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link text-dark fw-semibold" asp-area="" asp-controller="Subscription" asp-action="Index">Gói dịch vụ</a>
                             </li>
@@ -64,9 +70,6 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-primary btn-sm rounded-pill px-3 mt-1 text-white" asp-controller="Account" asp-action="Register">Đăng ký</a>
                             </li>
                         }
                     </ul>

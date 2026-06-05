@@ -139,7 +139,7 @@ namespace Assignment1_PRN222_Group7.Models.ExperimentViewModels
         public string ChunkingStrategy { get; set; } = "Fixed";
         public int ChunkSize { get; set; } = 512;
         public int ChunkOverlap { get; set; } = 64;
-        public string EmbeddingModel { get; set; } = "MultilingualE5Base";
+        public string EmbeddingModel { get; set; } = "GeminiEmbedding004";
         public string RetrievalMethod { get; set; } = "RAG";
         public int TopK { get; set; } = 5;
         public float SimilarityThreshold { get; set; } = 0.7f;

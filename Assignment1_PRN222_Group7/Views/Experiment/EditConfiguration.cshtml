@@ -55,7 +55,8 @@
                             <div class="col-md-6 mb-3">
                                 <label asp-for="EmbeddingModel" class="form-label">Embedding Model</label>
                                 <select asp-for="EmbeddingModel" class="form-select">
-                                    <option value="MultilingualE5Base" selected="@(Model.EmbeddingModel == "MultilingualE5Base")">Multilingual E5 Base (Free)</option>
+                                    <option value="GeminiEmbedding004" selected="@(Model.EmbeddingModel == "GeminiEmbedding004")">Gemini Text Embedding 004 (Miễn phí)</option>
+                                    <option value="MultilingualE5Base" selected="@(Model.EmbeddingModel == "MultilingualE5Base")">Multilingual E5 Base (HuggingFace)</option>
                                     <option value="TextEmbedding3Small" selected="@(Model.EmbeddingModel == "TextEmbedding3Small")">Text Embedding 3 Small (OpenAI)</option>
                                     <option value="PhoBERTBase" selected="@(Model.EmbeddingModel == "PhoBERTBase")">PhoBERT Base (Vietnamese)</option>
                                     <option value="BgeM3" selected="@(Model.EmbeddingModel == "BgeM3")">BGE M3 (BAAI)</option>

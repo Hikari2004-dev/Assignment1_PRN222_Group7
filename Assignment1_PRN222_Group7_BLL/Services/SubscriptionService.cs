@@ -50,7 +50,27 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                 return null;
             }
 
-            return sub;
+            if (sub != null) return sub;
+
+            // Auto-assign Free plan if user has no subscription at all
+            var planRepo = _unitOfWork.GetRepository<SubscriptionPlan>();
+            var freePlan = await planRepo.FirstOrDefaultAsync(p => p.Tier == SubscriptionTier.Free && p.IsActive);
+            if (freePlan == null) return null;
+
+            var newSub = new UserSubscription
+            {
+                UserId = userId,
+                PlanId = freePlan.Id,
+                StartDate = DateTime.UtcNow,
+                IsActive = true,
+                PaymentStatus = PaymentStatus.Paid,
+                CreatedAt = DateTime.UtcNow
+            };
+            await subRepo.AddAsync(newSub);
+            await _unitOfWork.SaveChangesAsync();
+
+            newSub.Plan = freePlan;
+            return newSub;
         }
 
         public async Task<List<SubscriptionPlan>> GetActivePlansAsync()
@@ -250,6 +270,56 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             {
                 await _unitOfWork.SaveChangesAsync();
             }
+        }
+
+        public async Task<(bool CanUpload, string? Message)> CheckDocumentUploadLimitAsync(int userId)
+        {
+            var sub = await GetActiveSubscriptionAsync(userId);
+            if (sub == null)
+            {
+                return (false, "No active subscription found. Please subscribe to upload documents.");
+            }
+
+            var plan = sub.Plan;
+            if (plan.MaxDocumentsUpload == -1) return (true, null);
+
+            var docRepo = _unitOfWork.GetRepository<Document>();
+            var userDocs = await docRepo.FindAsync(d => d.UploadedBy == userId);
+            var count = userDocs.Count();
+
+            if (plan.MaxDocumentsUpload > 0 && count >= plan.MaxDocumentsUpload)
+            {
+                return (false, $"You have reached the document upload limit ({plan.MaxDocumentsUpload}) for your {plan.Name} plan. Upgrade to upload more.");
+            }
+
+            return (true, null);
+        }
+
+        public async Task<(bool CanChat, string? Message)> CheckChatLimitAsync(int userId)
+        {
+            var sub = await GetActiveSubscriptionAsync(userId);
+            if (sub == null)
+            {
+                return (false, "No active subscription found. Please subscribe to use the chat feature.");
+            }
+
+            var plan = sub.Plan;
+            if (plan.MaxChatsPerDay == -1) return (true, null);
+
+            var sessionRepo = _unitOfWork.GetRepository<ChatSession>();
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+            var todaySessions = await sessionRepo.FindAsync(
+                s => s.UserId == userId && s.CreatedAt >= today && s.CreatedAt < tomorrow
+            );
+            var count = todaySessions.Count();
+
+            if (plan.MaxChatsPerDay > 0 && count >= plan.MaxChatsPerDay)
+            {
+                return (false, $"You have reached the daily chat limit ({plan.MaxChatsPerDay}) for your {plan.Name} plan. Upgrade for unlimited chat.");
+            }
+
+            return (true, null);
         }
     }
 }
