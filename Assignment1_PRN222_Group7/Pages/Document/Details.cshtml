@@ -1,0 +1,145 @@
+@page "/Subject/{subjectId:int}/Document/Details/{id:int}"
+@model Assignment1_PRN222_Group7.Pages.Document.DetailsModel
+@{
+    ViewData["Title"] = $"Chi tiết tài liệu - {Model.Document.Title}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="/Subject/Index">Môn học</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Subject/Details" asp-route-id="@Model.Subject.Id">@Model.Subject.Code</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id">Tài liệu</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm border-0 mb-4 rounded-3">
+    <div class="card-body p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="badge bg-secondary mb-2">📄 Tài liệu môn học</span>
+                <h1 class="h3 fw-bold mb-1">@Model.Document.Title</h1>
+                <p class="text-muted small mb-0">
+                    Tải lên bởi: <strong>@(Model.Document.Uploader?.FullName ?? "—")</strong> | 
+                    Ngày tải lên: @Model.Document.UploadedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-page="/Document/Index" asp-page-handler="Download" asp-route-subjectId="@Model.Subject.Id" asp-route-id="@Model.Document.Id"
+                   target="_blank" class="btn btn-outline-primary rounded-pill px-4">
+                    <i class="bi bi-download me-1"></i> Tải file gốc
+                </a>
+                @if (Model.IsAssignedLecturer)
+                {
+                    <form asp-page="/Document/Index" asp-page-handler="ReIndex"
+                          asp-route-subjectId="@Model.Subject.Id" asp-route-id="@Model.Document.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-arrow-repeat me-1"></i> Re-index tài liệu
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="bg-light p-3 rounded-3 text-center">
+                    <div class="text-muted small mb-1">Loại file</div>
+                    <div class="fw-bold"><span class="badge bg-info text-dark rounded-pill">@Model.Document.FileType</span></div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="bg-light p-3 rounded-3 text-center">
+                    <div class="text-muted small mb-1">Kích thước file</div>
+                    <div class="fw-bold">@FormatFileSize(Model.Document.FileSizeBytes)</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="bg-light p-3 rounded-3 text-center">
+                    <div class="text-muted small mb-1">Trạng thái RAG</div>
+                    <div>
+                        @if (Model.Document.IsIndexed)
+                        {
+                            <span class="badge bg-success rounded-pill">🟢 Indexed</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger rounded-pill">🔴 Not indexed</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="bg-light p-3 rounded-3 text-center">
+                    <div class="text-muted small mb-1">Tổng số Chunks</div>
+                    <div class="fw-bold text-primary fs-5">@Model.Document.TotalChunks</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 fw-bold mb-0">🔍 Danh sách các phân mảnh (Document Chunks)</h2>
+        <span class="badge bg-dark text-white rounded-pill">Chunks giúp AI tìm kiếm ngữ nghĩa chính xác hơn</span>
+    </div>
+
+    @if (!Model.Chunks.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-3 py-5 text-center">
+            <div style="font-size:3rem">🧩</div>
+            <p class="text-muted mt-2">Chưa có phân mảnh nào được tạo. Hãy nhấn **Re-index tài liệu** phía trên để phân mảnh và trích xuất vector!</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var chunk in Model.Chunks)
+            {
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-2 px-3">
+                        <span class="fw-bold text-secondary small">
+                            🧩 Phân mảnh #@(chunk.ChunkIndex + 1)
+                        </span>
+                        <div class="d-flex gap-2">
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill small">
+                                Độ dài: @chunk.ContentLength ký tự
+                            </span>
+                            @if (chunk.EmbeddingId != null)
+                            {
+                                <span class="badge bg-success-subtle text-success rounded-pill small">
+                                    Vector: OK
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning-subtle text-warning rounded-pill small">
+                                    Vector: None
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="mb-0 text-dark font-monospace small bg-white p-3 rounded-3 border" style="white-space: pre-wrap; line-height: 1.6; max-height: 250px; overflow-y: auto;">@chunk.Content</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="mt-3">
+    <a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id" class="btn btn-outline-secondary rounded-pill px-4">← Quay lại</a>
+</div>
+
+@functions {
+    static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}

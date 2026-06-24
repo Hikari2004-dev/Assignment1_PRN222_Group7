@@ -72,8 +72,8 @@ else
                 {
                     <tr>
                         <td class="fw-semibold">
-                            <a asp-page="/Document/Index" asp-page-handler="Download" asp-route-subjectId="@Model.Subject.Id" asp-route-id="@doc.Id" 
-                               target="_blank" class="text-decoration-none">
+                            <a asp-page="/Document/Details" asp-route-subjectId="@Model.Subject.Id" asp-route-id="@doc.Id" 
+                               class="text-decoration-none">
                                 📄 @doc.Title
                             </a>
                         </td>
