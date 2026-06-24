@@ -89,5 +89,12 @@ namespace Assignment1_PRN222_Group7_BLL.Services
             await _uow.SaveChangesAsync();
             return true;
         }
+
+        public async Task<IEnumerable<DocumentChunk>> GetDocumentChunksAsync(int documentId)
+        {
+            var repo = _uow.GetRepository<DocumentChunk>();
+            var chunks = await repo.FindAsync(c => c.DocumentId == documentId);
+            return chunks.OrderBy(c => c.ChunkIndex);
+        }
     }
 }

@@ -1,6 +1,5 @@
 using Assignment1_PRN222_Group7_BLL.Services;
 using Assignment1_PRN222_Group7_DAL.Entities;
-using Assignment1_PRN222_Group7_DAL.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -18,20 +17,17 @@ namespace Assignment1_PRN222_Group7.Pages.Document
     {
         private readonly IDocumentService _documentService;
         private readonly ISubjectService _subjectService;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IAccountService _accountService;
         private readonly IWebHostEnvironment _env;
 
         public DetailsModel(
             IDocumentService documentService,
             ISubjectService subjectService,
-            IUnitOfWork unitOfWork,
             IAccountService accountService,
             IWebHostEnvironment env)
         {
             _documentService = documentService;
             _subjectService = subjectService;
-            _unitOfWork = unitOfWork;
             _accountService = accountService;
             _env = env;
         }
@@ -70,9 +66,7 @@ namespace Assignment1_PRN222_Group7.Pages.Document
             Subject = subject;
             Document = doc;
 
-            var chunkRepo = _unitOfWork.GetRepository<DocumentChunk>();
-            var chunksList = await chunkRepo.FindAsync(c => c.DocumentId == id);
-            Chunks = chunksList.OrderBy(c => c.ChunkIndex);
+            Chunks = await _documentService.GetDocumentChunksAsync(id);
 
             IsAssignedLecturer = User.IsInRole("Lecturer") &&
                                  Subject.LecturerId.HasValue &&
