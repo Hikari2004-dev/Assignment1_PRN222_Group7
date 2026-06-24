@@ -1,0 +1,71 @@
+@page
+@model Assignment1_PRN222_Group7.Pages.Subject.EditModel
+@{
+    ViewData["Title"] = "Sửa môn học";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="./Index">Môn học</a></li>
+        <li class="breadcrumb-item active">Sửa</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;max-width:540px">
+    <div class="card-body p-4">
+        <h2 class="h5 fw-bold mb-4">✏️ Sửa môn học</h2>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <div asp-validation-summary="All" class="text-danger small"></div>
+            </div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" asp-for="Code">Mã môn học <span class="text-danger">*</span></label>
+                <input asp-for="Code" type="text" class="form-control" required maxlength="20" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" asp-for="Name">Tên môn học <span class="text-danger">*</span></label>
+                <input asp-for="Name" type="text" class="form-control" required maxlength="200" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" asp-for="Description">Mô tả</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" asp-for="SelectedLecturerId">Giảng viên quản lý</label>
+                    <select asp-for="SelectedLecturerId" class="form-select">
+                        <option value="">-- Chưa phân công --</option>
+                        @foreach (var lecturer in Model.Lecturers)
+                        {
+                            <option value="@lecturer.Id">@lecturer.FullName (@lecturer.Email)</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive" />
+                    <label class="form-check-label" asp-for="IsActive">Hiển thị (active)</label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-warning rounded-pill px-4">Lưu thay đổi</button>
+                <a asp-page="./Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

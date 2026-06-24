@@ -1,0 +1,390 @@
+@page "/Experiment/Dashboard/{id:int}"
+@model Assignment1_PRN222_Group7.Pages.Experiment.DashboardModel
+@{
+    ViewData["Title"] = "Experiment Dashboard";
+}
+
+@section Styles {
+    <style>
+        .metric-card {
+            transition: transform 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .table-responsive {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .score-high {
+            color: #198754;
+            font-weight: bold;
+        }
+        .score-medium {
+            color: #fd7e14;
+            font-weight: bold;
+        }
+        .score-low {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+}
+
+<div class="container mt-4">
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Experiment/Index">Experiments</a></li>
+            <li class="breadcrumb-item"><a asp-page="/Experiment/Details" asp-route-id="@Model.Dashboard.ExperimentId">@Model.Dashboard.ExperimentName</a></li>
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </nav>
+
+    @* Header *@
+    <div class="mb-4">
+        <h2><i class="bi bi-graph-up"></i> Experiment Dashboard: @Model.Dashboard.ExperimentName</h2>
+        <p class="text-muted">Results and metrics visualization</p>
+    </div>
+
+    @* Metric Cards *@
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card metric-card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@Model.Dashboard.TotalQuestions</h3>
+                    <small>Total Questions</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card metric-card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@Model.Dashboard.TotalConfigurations</h3>
+                    <small>Configurations</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card metric-card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@Model.Dashboard.AverageRAGASScore.ToString("F4")</h3>
+                    <small>Avg RAGAS Score</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card metric-card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@Model.Dashboard.AverageLatencyMs.ToString("F0") ms</h3>
+                    <small>Avg Latency</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Charts *@
+    <div class="row mb-4">
+        @* RAGAS Score Chart *@
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Average RAGAS Score by Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ragasScoreChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Latency Chart *@
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Average Latency by Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="latencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Configuration Metrics Table *@
+    @if (Model.Dashboard.ConfigurationMetrics.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-table"></i> Configuration Metrics Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Configuration</th>
+                                <th class="text-center">Avg RAGAS Score</th>
+                                <th class="text-center">Avg Latency (ms)</th>
+                                <th class="text-center">Score Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var metric in Model.Dashboard.ConfigurationMetrics)
+                            {
+                                var scoreLevel = metric.AverageRAGASScore switch
+                                {
+                                    >= 0.85 => "score-high",
+                                    >= 0.70 => "score-medium",
+                                    _ => "score-low"
+                                };
+                                <tr>
+                                    <td class="fw-bold">@metric.ConfigName</td>
+                                    <td class="text-center @scoreLevel">@metric.AverageRAGASScore.ToString("F4")</td>
+                                    <td class="text-center">@metric.AverageLatencyMs.ToString("F0") ms</td>
+                                    <td class="text-center">
+                                        @if (metric.AverageRAGASScore >= 0.85)
+                                        {
+                                            <span class="badge bg-success">Excellent</span>
+                                        }
+                                        else if (metric.AverageRAGASScore >= 0.70)
+                                        {
+                                            <span class="badge bg-warning text-dark">Good</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Needs Improvement</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Detailed Results Table *@
+    @if (Model.Dashboard.AllResults.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> Detailed Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>Config</th>
+                                <th>#</th>
+                                <th>Question</th>
+                                <th>Generated Answer</th>
+                                <th class="text-center">Ctx Prec</th>
+                                <th class="text-center">Ctx Recall</th>
+                                <th class="text-center">Faith</th>
+                                <th class="text-center">Relev</th>
+                                <th class="text-center">RAGAS</th>
+                                <th class="text-center">Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model.Dashboard.AllResults)
+                            {
+                                var ragasClass = (result.RAGASScore ?? 0f) switch
+                                {
+                                    >= 0.85f => "score-high",
+                                    >= 0.70f => "score-medium",
+                                    _ => "score-low"
+                                };
+                                <tr>
+                                    <td><small>@result.ConfigName</small></td>
+                                    <td>@result.QuestionId</td>
+                                    <td>
+                                        <small class="text-truncate d-block" style="max-width: 200px;" 
+                                               title="@result.QuestionText">
+                                            @result.QuestionText
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-truncate d-block" style="max-width: 200px;"
+                                               title="@result.GeneratedAnswer">
+                                            @result.GeneratedAnswer
+                                        </small>
+                                    </td>
+                                    <td class="text-center">@((result.ContextPrecision ?? 0).ToString("F3"))</td>
+                                    <td class="text-center">@((result.ContextRecall ?? 0).ToString("F3"))</td>
+                                    <td class="text-center">@((result.Faithfulness ?? 0).ToString("F3"))</td>
+                                    <td class="text-center">@((result.AnswerRelevancy ?? 0).ToString("F3"))</td>
+                                    <td class="text-center @ragasClass fw-bold">@((result.RAGASScore ?? 0).ToString("F4"))</td>
+                                    <td class="text-center">@result.LatencyMs ms</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No results available. Run the experiment to generate results.
+        </div>
+    }
+
+    @* Back Button *@
+    <div class="mb-4">
+        <a asp-page="/Experiment/Details" asp-route-id="@Model.Dashboard.ExperimentId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Experiment
+        </a>
+        @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+        {
+            <form asp-page-handler="RunExperiment" asp-route-id="@Model.Dashboard.ExperimentId" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-play-fill"></i> Re-run Experiment
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        // Configuration data from model
+        const configMetrics = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Dashboard.ConfigurationMetrics));
+
+        // Color palette
+        const colors = [
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(255, 206, 86, 0.8)',
+            'rgba(153, 102, 255, 0.8)',
+            'rgba(255, 159, 64, 0.8)',
+            'rgba(199, 199, 199, 0.8)',
+            'rgba(83, 102, 255, 0.8)'
+        ];
+
+        const borderColors = colors.map(c => c.replace('0.8', '1'));
+
+        // Extract data for charts
+        const labels = configMetrics.map(c => c.ConfigName);
+        const ragasScores = configMetrics.map(c => c.AverageRAGASScore);
+        const latencies = configMetrics.map(c => c.AverageLatencyMs);
+
+        // Chart.js default settings
+        Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        Chart.defaults.color = '#666';
+
+        // RAGAS Score Chart
+        const ragasCtx = document.getElementById('ragasScoreChart').getContext('2d');
+        new Chart(ragasCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average RAGAS Score',
+                    data: ragasScores,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: {
+                            display: true,
+                            text: 'RAGAS Score (0-1)'
+                        },
+                        ticks: {
+                            stepSize: 0.1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Score: ' + context.parsed.y.toFixed(4);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Latency Chart
+        const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+        new Chart(latencyCtx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average Latency (ms)',
+                    data: latencies,
+                    backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Latency (ms)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Latency: ' + context.parsed.y.toFixed(0) + ' ms';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

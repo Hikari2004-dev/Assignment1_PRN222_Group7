@@ -33,6 +33,7 @@ namespace Assignment1_PRN222_Group7_DAL.Entities
         public ICollection<ChatSession> ChatSessions { get; set; } = [];
         public ICollection<Document> UploadedDocuments { get; set; } = [];
         public ICollection<Subject> CreatedSubjects { get; set; } = [];
+        public ICollection<Subject> ManagedSubjects { get; set; } = [];
         public ICollection<Experiment> Experiments { get; set; } = [];
     }
 }

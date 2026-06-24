@@ -313,33 +313,34 @@ namespace Assignment1_PRN222_Group7_BLL.Services
 
         public async Task<List<Subject>> GetSubjectsAssignedToLecturerAsync(int lecturerId)
         {
-            var assignmentRepo = _unitOfWork.GetRepository<LecturerSubject>();
-            var assignments = await assignmentRepo.FindAsync(a => a.LecturerId == lecturerId, "Subject");
-            return assignments.Select(a => a.Subject).ToList();
+            var subjectRepo = _unitOfWork.GetRepository<Subject>();
+            var subjects = await subjectRepo.FindAsync(s => s.LecturerId == lecturerId, "Creator", "Chapters");
+            return subjects.ToList();
         }
 
         public async Task<bool> AssignSubjectsToLecturerAsync(int lecturerId, List<int> subjectIds)
         {
             try
             {
-                var assignmentRepo = _unitOfWork.GetRepository<LecturerSubject>();
+                var subjectRepo = _unitOfWork.GetRepository<Subject>();
                 
-                // Remove existing assignments
-                var existing = await assignmentRepo.FindAsync(a => a.LecturerId == lecturerId);
-                if (existing.Any())
+                // Remove existing assignments for this lecturer
+                var existing = await subjectRepo.FindAsync(s => s.LecturerId == lecturerId);
+                foreach (var s in existing)
                 {
-                    assignmentRepo.RemoveRange(existing);
+                    s.LecturerId = null;
+                    subjectRepo.Update(s);
                 }
 
                 // Add new assignments
                 if (subjectIds != null && subjectIds.Count > 0)
                 {
-                    var list = subjectIds.Select(sid => new LecturerSubject
+                    var newAssigned = await subjectRepo.FindAsync(s => subjectIds.Contains(s.Id));
+                    foreach (var s in newAssigned)
                     {
-                        LecturerId = lecturerId,
-                        SubjectId = sid
-                    });
-                    await assignmentRepo.AddRangeAsync(list);
+                        s.LecturerId = lecturerId;
+                        subjectRepo.Update(s);
+                    }
                 }
 
                 await _unitOfWork.SaveChangesAsync();
@@ -353,8 +354,8 @@ namespace Assignment1_PRN222_Group7_BLL.Services
 
         public async Task<bool> IsLecturerAssignedToSubjectAsync(int lecturerId, int subjectId)
         {
-            var assignmentRepo = _unitOfWork.GetRepository<LecturerSubject>();
-            return await assignmentRepo.AnyAsync(a => a.LecturerId == lecturerId && a.SubjectId == subjectId);
+            var subjectRepo = _unitOfWork.GetRepository<Subject>();
+            return await subjectRepo.AnyAsync(s => s.LecturerId == lecturerId && s.Id == subjectId);
         }
     }
 }

@@ -21,6 +21,11 @@ namespace Assignment1_PRN222_Group7_DAL.Entities
 
         // Navigation
         public User? Creator { get; set; }
+        
+        /// <summary>UserId của giảng viên quản lý môn học này</summary>
+        public int? LecturerId { get; set; }
+        public User? Lecturer { get; set; }
+
         public ICollection<Chapter> Chapters { get; set; } = [];
         public ICollection<Document> Documents { get; set; } = [];
         public ICollection<ChatSession> ChatSessions { get; set; } = [];

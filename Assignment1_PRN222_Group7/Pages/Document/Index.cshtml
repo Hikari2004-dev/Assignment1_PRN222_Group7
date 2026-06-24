@@ -1,0 +1,136 @@
+@page "/Subject/{subjectId:int}/Document"
+@model Assignment1_PRN222_Group7.Pages.Document.IndexModel
+@{
+    ViewData["Title"] = $"Tài liệu - {Model.Subject.Name}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="/Subject/Index">Môn học</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Subject/Details" asp-route-id="@Model.Subject.Id">@Model.Subject.Code</a></li>
+        <li class="breadcrumb-item active">Tài liệu</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 fw-bold mb-0">📄 Tài liệu — @Model.Subject.Name</h1>
+        <span class="badge bg-primary rounded-pill mt-1">@Model.Subject.Code</span>
+    </div>
+    @if (Model.IsAssignedLecturer)
+    {
+        <a asp-page="/Document/Upload" asp-route-subjectId="@Model.Subject.Id"
+           class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-upload me-1"></i> Upload tài liệu
+        </a>
+    }
+</div>
+
+@if (Model.FilterChapter != null)
+{
+    <div class="alert alert-info d-flex align-items-center justify-content-between" role="alert">
+        <span>📁 Đang lọc theo chương: <strong>@Model.FilterChapter.Title</strong></span>
+        <a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id"
+           class="btn btn-sm btn-outline-info rounded-pill">✕ Xem tất cả</a>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!Model.Documents.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <div style="font-size:3rem">📭</div>
+        <p>Chưa có tài liệu nào. Hãy upload tài liệu đầu tiên!</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tiêu đề</th>
+                    <th>Loại file</th>
+                    <th>Kích thước</th>
+                    <th>Chương</th>
+                    <th>Người upload</th>
+                    <th>Ngày upload</th>
+                    <th>Trạng thái</th>
+                    <th>Chunks</th>
+                    <th style="width:200px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var doc in Model.Documents)
+                {
+                    <tr>
+                        <td class="fw-semibold">
+                            <a asp-page="/Document/Index" asp-page-handler="Download" asp-route-subjectId="@Model.Subject.Id" asp-route-id="@doc.Id" 
+                               target="_blank" class="text-decoration-none">
+                                📄 @doc.Title
+                            </a>
+                        </td>
+                        <td><span class="badge bg-info text-dark rounded-pill">@doc.FileType</span></td>
+                        <td class="text-muted small">@FormatFileSize(doc.FileSizeBytes)</td>
+                        <td class="text-muted small">@(doc.Chapter?.Title ?? "—")</td>
+                        <td class="text-muted small">@(doc.Uploader?.FullName ?? "—")</td>
+                        <td class="text-muted small">@doc.UploadedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            @if (doc.IsIndexed)
+                            {
+                                <span class="badge bg-success rounded-pill">🟢 Indexed</span>
+                            }
+                            else if (doc.TotalChunks > 0)
+                            {
+                                <span class="badge bg-warning text-dark rounded-pill">🟡 Chunked</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger rounded-pill">🔴 Not indexed</span>
+                            }
+                        </td>
+                        <td class="text-center">@doc.TotalChunks</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                @if (Model.IsAssignedLecturer)
+                                {
+                                    <form asp-page="/Document/Index" asp-page-handler="ReIndex"
+                                          asp-route-subjectId="@Model.Subject.Id" asp-route-id="@doc.Id" method="post">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill"
+                                                title="Index / Re-index">⚡ Index</button>
+                                    </form>
+                                }
+                                @if (Model.IsAssignedLecturer)
+                                {
+                                    <a asp-page="/Document/Delete"
+                                       asp-route-subjectId="@Model.Subject.Id" asp-route-id="@doc.Id"
+                                       class="btn btn-sm btn-outline-danger rounded-pill">Xóa</a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="mt-3">
+    <a asp-page="/Subject/Index" class="btn btn-outline-secondary rounded-pill px-4">← Quay lại</a>
+</div>
+
+@functions {
+    static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}

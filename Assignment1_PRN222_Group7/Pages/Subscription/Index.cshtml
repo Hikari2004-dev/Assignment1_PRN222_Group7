@@ -1,0 +1,261 @@
+@page "/Subscription"
+@model Assignment1_PRN222_Group7.Pages.Subscription.IndexModel
+@{
+    ViewData["Title"] = "Gói Dịch Vụ";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-gradient">Chọn Gói Dịch Vụ Phù Hợp</h1>
+        <p class="lead text-muted">Nâng cấp trải nghiệm học tập và nghiên cứu với sự hỗ trợ đắc lực từ AI</p>
+        
+        @if (Model.ActiveSubscription != null)
+        {
+            <div class="active-badge-container d-inline-block px-4 py-2 mt-3 rounded-pill bg-light border text-center">
+                <span class="text-secondary">Gói hiện tại:</span> 
+                <strong class="text-primary text-uppercase">@(Model.ActiveSubscription.Plan?.Name)</strong>
+                @if (Model.ActiveSubscription.Plan?.Tier != Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free)
+                {
+                    <span class="text-muted ms-2">(Hạn dùng: @Model.ActiveSubscription.EndDate?.ToString("dd/MM/yyyy"))</span>
+                    @if (!Model.ActiveSubscription.AutoRenew)
+                    {
+                        <span class="badge bg-danger ms-2">Hủy gia hạn</span>
+                    }
+                    else if (Model.ActiveSubscription.ScheduledPlanId.HasValue)
+                    {
+                        <span class="badge bg-info text-dark ms-2">Hạ gói về @(Model.ActiveSubscription.ScheduledPlanId == 2 ? "Basic" : "Free") khi hết hạn</span>
+                    }
+                }
+            </div>
+        }
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <svg class="bi flex-shrink-0 me-2" width="16" height="16" fill="currentColor"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <svg class="bi flex-shrink-0 me-2" width="16" height="16" fill="currentColor"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model.PendingSubscription != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm border-0 mb-4 rounded-3 p-4 d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                <h5 class="fw-bold mb-1 text-warning-emphasis">Bạn có gói dịch vụ đang chờ kích hoạt!</h5>
+                <p class="mb-0 text-muted">Gói Premium đã hết hạn. Vui lòng thanh toán cho gói <strong>@(Model.PendingSubscription.Plan?.Name)</strong> để tiếp tục sử dụng dịch vụ trả phí.</p>
+            </div>
+            <div>
+                <a asp-page="/Subscription/Checkout" asp-route-planId="@(Model.PendingSubscription.PlanId)" class="btn btn-warning fw-bold text-dark px-4 py-2.5 rounded-3">Thanh Toán Kích Hoạt</a>
+            </div>
+        </div>
+    }
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 justify-content-center mt-2">
+        @foreach (var plan in Model.Plans)
+        {
+            var isCurrent = Model.ActiveSubscription != null && Model.ActiveSubscription.PlanId == plan.Id;
+            var isPremium = plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Premium;
+            
+            <div class="col col-lg-4">
+                <div class="card h-100 card-pricing @(isCurrent ? "border-primary-gradient active-card" : "border-0 shadow-sm") @(isPremium ? "featured-card" : "")">
+                    
+                    @if (isPremium)
+                    {
+                        <div class="card-badge bg-primary-gradient text-white text-uppercase font-monospace">Khuyên dùng</div>
+                    }
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h3 class="card-title fw-bold text-center mt-2">@plan.Name</h3>
+                        <p class="text-muted text-center card-subtitle-custom">@plan.Description</p>
+                        
+                        <div class="my-4 text-center">
+                            <span class="display-6 fw-extrabold">
+                                @if (plan.Price == 0)
+                                {
+                                    <span>Miễn phí</span>
+                                }
+                                else
+                                {
+                                    <span>@plan.Price.ToString("N0")</span><small class="fs-6 text-muted font-monospace"> đ/tháng</small>
+                                }
+                            </span>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <ul class="list-unstyled mb-4 flex-grow-1">
+                            <li class="mb-3 d-flex align-items-center">
+                                <span class="badge bg-success-soft text-success me-2 rounded-circle p-1">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l2.578 2.575 5.906-5.93z"/></svg>
+                                </span>
+                                Tài liệu upload tối đa: &nbsp;<strong>@(plan.MaxDocumentsUpload == -1 ? "Vô hạn" : plan.MaxDocumentsUpload.ToString() + " file")</strong>
+                            </li>
+                            <li class="mb-3 d-flex align-items-center">
+                                <span class="badge bg-success-soft text-success me-2 rounded-circle p-1">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l2.578 2.575 5.906-5.93z"/></svg>
+                                </span>
+                                Chat sessions / ngày: &nbsp;<strong>@(plan.MaxChatsPerDay == -1 ? "Vô hạn" : plan.MaxChatsPerDay.ToString() + " phiên")</strong>
+                            </li>
+                            <li class="mb-3 d-flex align-items-center">
+                                <span class="badge bg-success-soft text-success me-2 rounded-circle p-1">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l2.578 2.575 5.906-5.93z"/></svg>
+                                </span>
+                                Tin nhắn / session: &nbsp;<strong>@(plan.MaxMessagesPerSession == -1 ? "Vô hạn" : plan.MaxMessagesPerSession.ToString() + " tin")</strong>
+                            </li>
+                            <li class="mb-3 d-flex align-items-center">
+                                <span class="badge bg-success-soft text-success me-2 rounded-circle p-1">
+                                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l2.578 2.575 5.906-5.93z"/></svg>
+                                </span>
+                                Số môn học tiếp cận: &nbsp;<strong>@(plan.MaxSubjectsAccess == -1 ? "Vô hạn" : plan.MaxSubjectsAccess.ToString() + " môn")</strong>
+                            </li>
+                        </ul>
+
+                        <div class="mt-auto">
+                            @if (isCurrent)
+                            {
+                                <button class="btn btn-outline-secondary w-100 py-2.5 rounded-3 fw-semibold mb-2" disabled>
+                                    Đang sử dụng
+                                </button>
+                                @if (plan.Tier != Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free && Model.ActiveSubscription != null && Model.ActiveSubscription.AutoRenew)
+                                {
+                                    <form asp-page-handler="CancelAutoRenew" method="post" class="w-100">
+                                        <button type="submit" class="btn btn-link text-danger w-100 text-decoration-none small p-0 mt-1">Hủy gia hạn gói</button>
+                                    </form>
+                                }
+                            }
+                            else if (Model.ActiveSubscription != null && Model.ActiveSubscription.Plan?.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Premium && plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Basic)
+                            {
+                                @if (Model.ActiveSubscription.ScheduledPlanId == plan.Id)
+                                {
+                                    <div class="alert alert-info py-2 px-3 rounded-3 mb-2 small text-center">
+                                        Đã đặt lịch hạ xuống gói này sau khi hết hạn Premium.
+                                    </div>
+                                    <form asp-page-handler="CancelScheduledDowngrade" method="post" class="w-100">
+                                        <button type="submit" class="btn btn-outline-danger w-100 py-2 rounded-3 fw-semibold btn-pricing-action">
+                                            Hủy đặt lịch hạ gói
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-page-handler="ScheduleDowngrade" method="post" class="w-100">
+                                        <input type="hidden" name="planId" value="@plan.Id" />
+                                        <button type="submit" class="btn btn-outline-warning w-100 py-2.5 rounded-3 fw-semibold btn-pricing-action">
+                                            Đặt lịch hạ gói
+                                        </button>
+                                    </form>
+                                }
+                            }
+                            else if (plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Free)
+                            {
+                                <button class="btn btn-outline-secondary w-100 py-2.5 rounded-3 fw-semibold" disabled>
+                                    Không khả dụng
+                                </button>
+                            }
+                            else
+                            {
+                                <a asp-page="/Subscription/Checkout" asp-route-planId="@plan.Id" 
+                                   class="btn @(isPremium ? "btn-primary-gradient text-white" : "btn-outline-primary") w-100 py-2.5 rounded-3 fw-semibold btn-pricing-action">
+                                    @(Model.ActiveSubscription != null && Model.ActiveSubscription.Plan?.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Basic && plan.Tier == Assignment1_PRN222_Group7_DAL.Enums.SubscriptionTier.Premium ? "Nâng cấp ngay" : "Mua ngay")
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .text-gradient {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .bg-primary-gradient {
+        background: linear-gradient(135deg, #2575fc 0%, #1a5cff 100%);
+    }
+
+    .border-primary-gradient {
+        border: 2px solid #2575fc !important;
+    }
+
+    .card-pricing {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-pricing:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .active-card {
+        box-shadow: 0 10px 25px rgba(37, 117, 252, 0.15) !important;
+    }
+
+    .featured-card {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(37, 117, 252, 0.15);
+    }
+
+    .card-badge {
+        position: absolute;
+        top: 15px;
+        right: -35px;
+        transform: rotate(45deg);
+        width: 130px;
+        text-align: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        letter-spacing: 1px;
+        padding: 4px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .bg-success-soft {
+        background-color: rgba(40, 167, 69, 0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #2575fc 0%, #1a5cff 100%);
+        border: none;
+        transition: opacity 0.2s;
+    }
+
+    .btn-primary-gradient:hover {
+        opacity: 0.9;
+        color: white;
+    }
+
+    .btn-pricing-action {
+        transition: all 0.2s ease-in-out;
+    }
+
+    .card-subtitle-custom {
+        font-size: 0.9rem;
+        min-height: 40px;
+    }
+
+    .fw-extrabold {
+        font-weight: 800;
+    }
+</style>

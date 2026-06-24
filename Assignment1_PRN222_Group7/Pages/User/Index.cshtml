@@ -1,0 +1,140 @@
+@page
+@model Assignment1_PRN222_Group7.Pages.User.IndexModel
+@{
+    ViewData["Title"] = "Quản lý thành viên";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-0">👥 Quản lý thành viên</h1>
+        <p class="text-muted small mb-0">Quản lý tài khoản Giảng viên & Sinh viên trong hệ thống</p>
+    </div>
+    <a asp-page="/Account/Register" class="btn btn-primary rounded-pill px-4">
+        <i class="bi bi-person-plus-fill me-1"></i> Tạo tài khoản mới
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Bộ lọc tìm kiếm -->
+<div class="card shadow-sm border-0 mb-4 rounded-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label text-muted small fw-semibold">Tìm kiếm</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                    <input type="text" asp-for="Search" class="form-control bg-light border-0" placeholder="Tìm tên hoặc email...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-muted small fw-semibold">Lọc vai trò</label>
+                <select asp-for="RoleFilter" class="form-select bg-light border-0">
+                    <option value="">-- Tất cả vai trò --</option>
+                    <option value="Admin">Quản trị viên (Admin)</option>
+                    <option value="Lecturer">Giảng viên (Lecturer)</option>
+                    <option value="Student">Sinh viên (Student)</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-dark w-100 rounded-pill">Áp dụng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-muted small uppercase">
+                <tr>
+                    <th class="ps-4">Họ và tên</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Mã số</th>
+                    <th>Trạng thái</th>
+                    <th>Đăng nhập cuối</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr class="@(user.IsActive ? "" : "table-light text-muted")">
+                        <td class="ps-4 fw-semibold">@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            @if (user.Role.Name == "Admin")
+                            {
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-3">@user.Role.Description</span>
+                            }
+                            else if (user.Role.Name == "Lecturer")
+                            {
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3">@user.Role.Description</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">@user.Role.Description</span>
+                            }
+                        </td>
+                        <td>@(user.StudentOrStaffId ?? "-")</td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success rounded-pill px-3"><i class="bi bi-check-circle me-1"></i>Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-dark-subtle text-dark rounded-pill px-3"><i class="bi bi-lock-fill me-1"></i>Đã khóa</span>
+                            }
+                        </td>
+                        <td class="small">
+                            @(user.LastLoginAt.HasValue ? user.LastLoginAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "Chưa đăng nhập")
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-inline-flex gap-2">
+                                <a asp-page="./Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-warning rounded-pill px-3">Sửa</a>
+                                
+                                @if (user.Role.Name == "Lecturer")
+                                {
+                                    <a asp-page="./AssignSubjects" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3">Phân quyền</a>
+                                }
+
+                                @if (user.Role.Name != "Admin")
+                                {
+                                    <form asp-page-handler="ToggleStatus" asp-route-id="@user.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="Search" value="@Model.Search" />
+                                        <input type="hidden" name="RoleFilter" value="@Model.RoleFilter" />
+                                        @if (user.IsActive)
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Bạn có chắc chắn muốn khóa tài khoản này?')">Khóa</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3">Mở khóa</button>
+                                        }
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

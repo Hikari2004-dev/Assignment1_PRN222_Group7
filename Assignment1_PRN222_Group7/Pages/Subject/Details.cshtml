@@ -1,0 +1,72 @@
+@page
+@model Assignment1_PRN222_Group7.Pages.Subject.DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết môn học";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="./Index">Môn học</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;max-width:640px">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="badge bg-primary fs-6 px-3 py-2">@Model.Subject.Code</span>
+            <h2 class="h4 fw-bold mb-0">@Model.Subject.Name</h2>
+            @if (!Model.Subject.IsActive)
+            {
+                <span class="badge bg-secondary">Đã ẩn</span>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Subject.Description))
+        {
+            <p class="text-muted">@Model.Subject.Description</p>
+        }
+
+        <hr />
+        <dl class="row small">
+            <dt class="col-sm-4 text-muted">Ngày tạo</dt>
+            <dd class="col-sm-8">@Model.Subject.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-4 text-muted">Số chương</dt>
+            <dd class="col-sm-8">@Model.Subject.Chapters.Count</dd>
+
+            @if (Model.Subject.Creator != null)
+            {
+                <dt class="col-sm-4 text-muted">Người tạo</dt>
+                <dd class="col-sm-8">@Model.Subject.Creator.FullName</dd>
+            }
+            
+            <dt class="col-sm-4 text-muted">Giảng viên quản lý</dt>
+            @if (Model.Subject.Lecturer != null)
+            {
+                <dd class="col-sm-8 fw-semibold text-primary">@Model.Subject.Lecturer.FullName (@Model.Subject.Lecturer.Email)</dd>
+            }
+            else
+            {
+                <dd class="col-sm-8 text-muted fst-italic">Chưa phân công</dd>
+            }
+        </dl>
+
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+            <a asp-page="/Chapter/Index" asp-route-subjectId="@Model.Subject.Id"
+               class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-list-ul me-1"></i>Xem chương
+            </a>
+            <a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id"
+               class="btn btn-success rounded-pill px-4">
+                <i class="bi bi-file-earmark-text me-1"></i>Tài liệu
+            </a>
+            @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+            {
+                <a asp-page="/Subject/Edit" asp-route-id="@Model.Subject.Id"
+                   class="btn btn-outline-warning rounded-pill px-4">Sửa</a>
+            }
+            <a asp-page="./Index" class="btn btn-outline-secondary rounded-pill px-4">← Quay lại</a>
+        </div>
+    </div>
+</div>

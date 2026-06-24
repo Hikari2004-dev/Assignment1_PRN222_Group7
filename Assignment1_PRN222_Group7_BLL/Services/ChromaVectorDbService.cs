@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace Assignment1_PRN222_Group7_BLL.Services;
 
@@ -15,13 +16,13 @@ public class ChromaVectorDbService : IVectorDbService
     private readonly Dictionary<string, string> _collectionIdCache = new();
     private readonly object _cacheLock = new();
 
-    public ChromaVectorDbService(HttpClient http, ILogger<ChromaVectorDbService> logger)
+    public ChromaVectorDbService(HttpClient http, ILogger<ChromaVectorDbService> logger, IConfiguration config)
     {
         _http = http;
         _logger = logger;
-        var baseUrl = Environment.GetEnvironmentVariable("CHROMADB_URL") ?? "http://hikari2004.ddns.net:8017";
-        _tenant = Environment.GetEnvironmentVariable("CHROMADB_TENANT") ?? "default";
-        _database = Environment.GetEnvironmentVariable("CHROMADB_DATABASE") ?? "chromadb";
+        var baseUrl = config["ChromaDb:Url"] ?? Environment.GetEnvironmentVariable("CHROMADB_URL") ?? "http://localhost:8000";
+        _tenant = config["ChromaDb:Tenant"] ?? Environment.GetEnvironmentVariable("CHROMADB_TENANT") ?? "default";
+        _database = config["ChromaDb:Database"] ?? Environment.GetEnvironmentVariable("CHROMADB_DATABASE") ?? "chromadb";
         _baseUrl = baseUrl.TrimEnd('/');
     }
 

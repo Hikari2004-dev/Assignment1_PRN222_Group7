@@ -15,13 +15,13 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         public async Task<IEnumerable<Subject>> GetAllSubjectsAsync()
         {
             var repo = _uow.GetRepository<Subject>();
-            return await repo.FindAsync(s => true, "Creator", "Chapters");
+            return await repo.FindAsync(s => true, "Creator", "Chapters", "Lecturer");
         }
 
         public async Task<Subject?> GetSubjectByIdAsync(int id)
         {
             var repo = _uow.GetRepository<Subject>();
-            var results = await repo.FindAsync(s => s.Id == id, "Creator", "Chapters");
+            var results = await repo.FindAsync(s => s.Id == id, "Creator", "Chapters", "Lecturer");
             return results.FirstOrDefault();
         }
 

@@ -1,0 +1,159 @@
+@page
+@model Assignment1_PRN222_Group7.Pages.Subject.IndexModel
+@{
+    ViewData["Title"] = "Quản lý môn học";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-0">📚 Môn học</h1>
+        <p class="text-muted small mb-0">Danh sách tất cả môn học trong hệ thống</p>
+    </div>
+    @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+    {
+        <a asp-page="/Subject/Create" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-plus-lg me-1"></i> Thêm môn học
+        </a>
+    }
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-alert="alert"></button>
+    </div>
+}
+
+<div id="subject-cards-wrapper">
+    @if (!Model.Subjects.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <div style="font-size:3rem">📭</div>
+            <p>Chưa có môn học nào. Hãy thêm môn học đầu tiên!</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3" id="subject-cards-container">
+            @foreach (var subject in Model.Subjects)
+            {
+                <div class="col-md-6 col-lg-4" id="subject-card-@subject.Id">
+                    <div class="card h-100 shadow-sm border-0 subject-card @(subject.IsActive ? "" : "opacity-50")">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary rounded-pill px-3">@subject.Code</span>
+                                @if (!subject.IsActive)
+                                {
+                                    <span class="badge bg-secondary">Đã ẩn</span>
+                                }
+                            </div>
+                            <h5 class="card-title fw-semibold">@subject.Name</h5>
+                            @if (!string.IsNullOrEmpty(subject.Description))
+                            {
+                                <p class="card-text text-muted small">@subject.Description</p>
+                            }
+                            <p class="card-text text-muted small mb-2">
+                                <i class="bi bi-collection me-1"></i>@subject.Chapters.Count chương
+                                &nbsp;·&nbsp;
+                                <i class="bi bi-calendar3 me-1"></i>@subject.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                            </p>
+                            @if (subject.Lecturer != null)
+                            {
+                                <p class="card-text text-primary small mb-0">
+                                    <i class="bi bi-person-badge me-1"></i>GV: <strong>@subject.Lecturer.FullName</strong>
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="card-text text-muted small mb-0">
+                                    <i class="bi bi-person-badge me-1"></i>GV: <span class="fst-italic text-muted">Chưa phân công</span>
+                                </p>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex gap-2 flex-wrap">
+                            <a asp-page="/Subject/Details" asp-route-id="@subject.Id"
+                               class="btn btn-sm btn-outline-info rounded-pill">Chi tiết</a>
+                            <a asp-page="/Chapter/Index" asp-route-subjectId="@subject.Id"
+                               class="btn btn-sm btn-outline-primary rounded-pill">
+                                <i class="bi bi-list-ul me-1"></i>Chương
+                            </a>
+                            <a asp-page="/Document/Index" asp-route-subjectId="@subject.Id"
+                               class="btn btn-sm btn-outline-success rounded-pill">
+                                <i class="bi bi-file-earmark-text me-1"></i>Tài liệu
+                            </a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+                            {
+                                <a asp-page="/Subject/Edit" asp-route-id="@subject.Id"
+                                   class="btn btn-sm btn-outline-warning rounded-pill">Sửa</a>
+                            }
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-page="/Subject/Delete" asp-route-id="@subject.Id"
+                                   class="btn btn-sm btn-outline-danger rounded-pill">Xóa</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .subject-card { transition: transform .2s, box-shadow .2s; border-radius: 12px !important; }
+    .subject-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1) !important; }
+</style>
+
+@section Scripts {
+    <!-- SignalR client library CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Establish SignalR connection
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/subjectHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Set up handlers
+            connection.on("SubjectCreated", function (subject) {
+                console.log("Subject created event received:", subject);
+                // Reload the subject grid wrapper dynamically via AJAX
+                $("#subject-cards-wrapper").load(window.location.href + " #subject-cards-wrapper > *");
+            });
+
+            connection.on("SubjectUpdated", function (subject) {
+                console.log("Subject updated event received:", subject);
+                // Reload the subject grid wrapper dynamically via AJAX
+                $("#subject-cards-wrapper").load(window.location.href + " #subject-cards-wrapper > *");
+            });
+
+            connection.on("SubjectDeleted", function (subjectId) {
+                console.log("Subject deleted event received:", subjectId);
+                // Remove the specific card from DOM with a smooth fade-out animation
+                const $card = $(`#subject-card-${subjectId}`);
+                if ($card.length) {
+                    $card.fadeOut(400, function () {
+                        $(this).remove();
+                        // If no more cards, reload to show empty state message
+                        if ($("#subject-cards-container").children().length === 0) {
+                            $("#subject-cards-wrapper").load(window.location.href + " #subject-cards-wrapper > *");
+                        }
+                    });
+                } else {
+                    $("#subject-cards-wrapper").load(window.location.href + " #subject-cards-wrapper > *");
+                }
+            });
+
+            // Start the connection
+            connection.start()
+                .then(function () {
+                    console.log("SignalR Connected to SubjectHub!");
+                })
+                .catch(function (err) {
+                    return console.error("SignalR connection failed: ", err.toString());
+                });
+        });
+    </script>
+}

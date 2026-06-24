@@ -1,0 +1,36 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<div class="container py-5">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold text-gradient mb-3">Hệ thống Trợ lý Học tập AI thông minh</h1>
+            <p class="lead text-muted">
+                Tích hợp công nghệ RAG (Retrieval-Augmented Generation) tiên tiến giúp sinh viên hỏi đáp trực tiếp, ôn tập kiến thức và thực hành thí nghiệm dựa trên tài liệu môn học.
+            </p>
+            <div class="d-flex gap-3 mt-4">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-page="/Chat/Index" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm">
+                        <i class="fa-solid fa-comments me-2"></i>Trò chuyện với AI
+                    </a>
+                    <a asp-page="/Subject/Index" class="btn btn-outline-secondary btn-lg rounded-pill px-4">
+                        <i class="fa-solid fa-book me-2"></i>Xem Môn học
+                    </a>
+                }
+                else
+                {
+                    <a asp-page="/Account/Login" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm">
+                        Đăng nhập ngay
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+            <img src="https://img.freepik.com/free-vector/learning-concept-illustration_114360-6186.jpg" alt="Learning Assistant AI" class="img-fluid rounded-4 shadow-lg border" style="max-height: 400px; object-fit: cover;" />
+        </div>
+    </div>
+</div>

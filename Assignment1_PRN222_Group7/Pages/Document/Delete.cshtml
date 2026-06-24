@@ -1,0 +1,82 @@
+@page "/Subject/{subjectId:int}/Document/Delete/{id:int}"
+@model Assignment1_PRN222_Group7.Pages.Document.DeleteModel
+@{
+    ViewData["Title"] = $"Xóa tài liệu - {Model.Document.Title}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="/Subject/Index">Môn học</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Subject/Details" asp-route-id="@Model.Subject.Id">@Model.Subject.Code</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id">Tài liệu</a></li>
+        <li class="breadcrumb-item active">Xóa</li>
+    </ol>
+</nav>
+
+<h1 class="h4 fw-bold mb-4">🗑️ Xác nhận xóa tài liệu</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger shadow-sm">
+            <div class="card-body">
+                <div class="alert alert-warning mb-3">
+                    <strong>⚠️ Cảnh báo:</strong> Xóa tài liệu sẽ đồng thời xóa tất cả các chunk và embedding liên quan.
+                    Hành động này không thể hoàn tác.
+                </div>
+
+                <table class="table table-borderless mb-4">
+                    <tr>
+                        <th style="width:140px">Tiêu đề</th>
+                        <td class="fw-semibold">@Model.Document.Title</td>
+                    </tr>
+                    <tr>
+                        <th>File gốc</th>
+                        <td>@Model.Document.OriginalFileName</td>
+                    </tr>
+                    <tr>
+                        <th>Loại file</th>
+                        <td><span class="badge bg-info text-dark">@Model.Document.FileType</span></td>
+                    </tr>
+                    <tr>
+                        <th>Kích thước</th>
+                        <td>@FormatFileSize(Model.Document.FileSizeBytes)</td>
+                    </tr>
+                    <tr>
+                        <th>Tổng chunks</th>
+                        <td>@Model.Document.TotalChunks</td>
+                    </tr>
+                    <tr>
+                        <th>Trạng thái</th>
+                        <td>
+                            @if (Model.Document.IsIndexed)
+                            {
+                                <span class="badge bg-success">Indexed</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Not indexed</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="d-flex gap-2">
+                    <form method="post">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Xác nhận xóa</button>
+                    </form>
+                    <a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id"
+                       class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}

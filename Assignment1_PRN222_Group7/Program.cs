@@ -75,8 +75,9 @@ namespace Assignment1_PRN222_Group7
             // ─── Background Hosted Services ──────────────────────────────────
             builder.Services.AddHostedService<Assignment1_PRN222_Group7.BackgroundServices.SubscriptionExpirationWorker>();
 
-            // ─── MVC ──────────────────────────────────────────────────────────
-            builder.Services.AddControllersWithViews();
+            // ─── Razor Pages & SignalR ───────────────────────────────────
+            builder.Services.AddRazorPages();
+            builder.Services.AddSignalR();
 
             var app = builder.Build();
 
@@ -86,14 +87,13 @@ namespace Assignment1_PRN222_Group7
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 await db.Database.EnsureCreatedAsync();
                 await db.Database.ExecuteSqlRawAsync(@"
-                    IF OBJECT_ID('LecturerSubjects', 'U') IS NULL
+                    IF NOT EXISTS (
+                        SELECT * FROM sys.columns 
+                        WHERE object_id = OBJECT_ID(N'[dbo].[Subjects]') AND name = N'LecturerId'
+                    )
                     BEGIN
-                        CREATE TABLE [LecturerSubjects] (
-                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
-                            [LecturerId] INT NOT NULL FOREIGN KEY REFERENCES [Users]([Id]) ON DELETE CASCADE,
-                            [SubjectId] INT NOT NULL FOREIGN KEY REFERENCES [Subjects]([Id]) ON DELETE CASCADE
-                        );
-                        CREATE UNIQUE INDEX [IX_LecturerSubjects_LecturerId_SubjectId] ON [LecturerSubjects] ([LecturerId], [SubjectId]);
+                        ALTER TABLE [dbo].[Subjects] ADD [LecturerId] INT NULL;
+                        ALTER TABLE [dbo].[Subjects] ADD CONSTRAINT [FK_Subjects_Users_LecturerId] FOREIGN KEY ([LecturerId]) REFERENCES [Users]([Id]) ON DELETE NO ACTION;
                     END
                 ");
                 await SeedAsync(db);
@@ -102,7 +102,7 @@ namespace Assignment1_PRN222_Group7
             // ─── HTTP Pipeline ────────────────────────────────────────────────
             if (!app.Environment.IsDevelopment())
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
@@ -113,10 +113,8 @@ namespace Assignment1_PRN222_Group7
             app.UseAuthorization();
 
             app.MapStaticAssets();
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
-                .WithStaticAssets();
+            app.MapRazorPages();
+            app.MapHub<Assignment1_PRN222_Group7.Hubs.SubjectHub>("/subjectHub");
 
             await app.RunAsync();
         }

@@ -1,0 +1,39 @@
+@page "/Subject/{subjectId:int}/Chapter/Delete/{id:int}"
+@model Assignment1_PRN222_Group7.Pages.Chapter.DeleteModel
+@{
+    ViewData["Title"] = "Xóa chương";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="/Subject/Index">Môn học</a></li>
+        <li class="breadcrumb-item">
+            <a asp-page="/Chapter/Index" asp-route-subjectId="@Model.Subject.Id">@Model.Subject.Code</a>
+        </li>
+        <li class="breadcrumb-item active">Xóa chương</li>
+    </ol>
+</nav>
+
+<div class="card border-danger shadow-sm" style="border-radius:14px;max-width:540px">
+    <div class="card-body p-4">
+        <h2 class="h5 fw-bold text-danger mb-3">⚠️ Xác nhận xóa chương</h2>
+        <p class="text-muted">Hành động này không thể hoàn tác.</p>
+
+        <dl class="row">
+            <dt class="col-sm-4">Môn học</dt>
+            <dd class="col-sm-8">@Model.Subject.Name (@Model.Subject.Code)</dd>
+
+            <dt class="col-sm-4">Tiêu đề</dt>
+            <dd class="col-sm-8 fw-semibold">@Model.Chapter.Title</dd>
+
+            <dt class="col-sm-4">Thứ tự</dt>
+            <dd class="col-sm-8">@Model.Chapter.OrderIndex</dd>
+        </dl>
+
+        <form method="post" class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-danger rounded-pill px-4">Xác nhận xóa</button>
+            <a asp-page="/Chapter/Index" asp-route-subjectId="@Model.Subject.Id"
+               class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+        </form>
+    </div>
+</div>

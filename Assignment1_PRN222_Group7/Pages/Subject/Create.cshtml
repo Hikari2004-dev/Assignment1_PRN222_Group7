@@ -1,0 +1,67 @@
+@page
+@model Assignment1_PRN222_Group7.Pages.Subject.CreateModel
+@{
+    ViewData["Title"] = "Thêm môn học";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="./Index">Môn học</a></li>
+        <li class="breadcrumb-item active">Thêm mới</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm border-0" style="border-radius:14px;max-width:540px">
+    <div class="card-body p-4">
+        <h2 class="h5 fw-bold mb-4">➕ Thêm môn học mới</h2>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <div asp-validation-summary="All" class="text-danger small"></div>
+            </div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" asp-for="Code">Mã môn học <span class="text-danger">*</span></label>
+                <input asp-for="Code" type="text" class="form-control"
+                       placeholder="Ví dụ: PRN222" required maxlength="20" />
+                <div class="form-text">Sẽ được tự động chuyển thành CHỮ HOA.</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" asp-for="Name">Tên môn học <span class="text-danger">*</span></label>
+                <input asp-for="Name" type="text" class="form-control"
+                       placeholder="Ví dụ: Cross-Platform Programming" required maxlength="200" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" asp-for="Description">Mô tả</label>
+                <textarea asp-for="Description" class="form-control" rows="3"
+                          placeholder="Mô tả ngắn về môn học (không bắt buộc)"></textarea>
+            </div>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" asp-for="SelectedLecturerId">Giảng viên quản lý</label>
+                    <select asp-for="SelectedLecturerId" class="form-select">
+                        <option value="">-- Chưa phân công --</option>
+                        @foreach (var lecturer in Model.Lecturers)
+                        {
+                            <option value="@lecturer.Id">@lecturer.FullName (@lecturer.Email)</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu</button>
+                <a asp-page="./Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

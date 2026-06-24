@@ -427,3 +427,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Local ChromaDB data
+chroma/
+
+# Uploaded documents
+Assignment1_PRN222_Group7/wwwroot/uploads/
+

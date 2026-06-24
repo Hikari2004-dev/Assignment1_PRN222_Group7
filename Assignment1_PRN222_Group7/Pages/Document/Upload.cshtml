@@ -1,0 +1,70 @@
+@page "/Subject/{subjectId:int}/Document/Upload"
+@model Assignment1_PRN222_Group7.Pages.Document.UploadModel
+@{
+    ViewData["Title"] = $"Upload tài liệu - {Model.Subject.Name}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-page="/Subject/Index">Môn học</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Subject/Details" asp-route-id="@Model.Subject.Id">@Model.Subject.Code</a></li>
+        <li class="breadcrumb-item"><a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id">Tài liệu</a></li>
+        <li class="breadcrumb-item active">Upload</li>
+    </ol>
+</nav>
+
+<h1 class="h4 fw-bold mb-4">📤 Upload tài liệu — @Model.Subject.Name</h1>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <div>@err.ErrorMessage</div>
+                            }
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" asp-for="Title"
+                               placeholder="VD: Slide chương 1 - Giới thiệu lập trình" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ChapterId" class="form-label fw-semibold">Chương (tuỳ chọn)</label>
+                        <select class="form-select" asp-for="ChapterId">
+                            <option value="">— Không gắn chương —</option>
+                            @foreach (var ch in Model.Chapters)
+                            {
+                                <option value="@ch.Id">@ch.Title</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="UploadedFile" class="form-label fw-semibold">Chọn file <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" asp-for="UploadedFile"
+                               accept=".pdf,.docx,.pptx,.txt" required />
+                        <div class="form-text">Hỗ trợ: PDF, DOCX, PPTX, TXT. Tối đa 50 MB.</div>
+                        <span asp-validation-for="UploadedFile" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-upload me-1"></i> Upload
+                        </button>
+                        <a asp-page="/Document/Index" asp-route-subjectId="@Model.Subject.Id"
+                           class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

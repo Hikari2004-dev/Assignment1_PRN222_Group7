@@ -1,0 +1,83 @@
+@page
+@model Assignment1_PRN222_Group7.Pages.User.EditModel
+@{
+    ViewData["Title"] = "Chỉnh sửa thành viên";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow border-0 rounded-3 my-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <a asp-page="./Index" class="btn btn-sm btn-outline-secondary rounded-pill me-3">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                    <h2 class="h4 fw-bold mb-0">Chỉnh sửa thông tin thành viên</h2>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <div asp-validation-summary="All" class="text-danger small"></div>
+                    </div>
+                }
+
+                <form method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- Họ tên -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small" asp-for="FullName">Họ và tên</label>
+                        <input type="text" asp-for="FullName" class="form-control" required />
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small" asp-for="Email">Địa chỉ Email</label>
+                        <input type="email" asp-for="Email" class="form-control" required />
+                    </div>
+
+                    <!-- Vai trò -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small" asp-for="RoleId">Vai trò</label>
+                        <select asp-for="RoleId" class="form-select" required>
+                            @foreach (var role in Model.Roles)
+                            {
+                                <option value="@role.Id">@role.Description</option>
+                            }
+                            @if (Model.RoleId == 3)
+                            {
+                                <option value="3" selected>Quản trị viên (Admin)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Mã số Sinh viên / Giảng viên -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small" asp-for="StudentOrStaffId">Mã số (MSSV hoặc MSGV)</label>
+                        <input type="text" asp-for="StudentOrStaffId" class="form-control" placeholder="Ví dụ: SE170254, GV101..." />
+                    </div>
+
+                    <div class="card bg-light border-0 p-3 mb-4 rounded-3">
+                        <h6 class="fw-bold small mb-2 text-dark"><i class="bi bi-shield-lock me-1"></i>Thay đổi mật khẩu (Tùy chọn)</h6>
+                        <p class="text-muted small mb-3">Chỉ nhập nếu bạn muốn đổi mật khẩu mới cho tài khoản này.</p>
+                        
+                        <div class="mb-2">
+                            <label class="form-label small" asp-for="Password">Mật khẩu mới</label>
+                            <input type="password" asp-for="Password" class="form-control bg-white" placeholder="Bỏ trống để giữ nguyên" />
+                        </div>
+                        <div>
+                            <label class="form-label small" asp-for="ConfirmPassword">Xác nhận mật khẩu</label>
+                            <input type="password" asp-for="ConfirmPassword" class="form-control bg-white" placeholder="Bỏ trống để giữ nguyên" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">
+                        Lưu thay đổi
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
