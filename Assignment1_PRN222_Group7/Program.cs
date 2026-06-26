@@ -74,6 +74,7 @@ namespace Assignment1_PRN222_Group7
 
             // ─── Background Hosted Services ──────────────────────────────────
             builder.Services.AddHostedService<Assignment1_PRN222_Group7.BackgroundServices.SubscriptionExpirationWorker>();
+            builder.Services.AddHostedService<Assignment1_PRN222_Group7.BackgroundServices.ChromaDbStartWorker>();
 
             // ─── Razor Pages & SignalR ───────────────────────────────────
             builder.Services.AddRazorPages();
