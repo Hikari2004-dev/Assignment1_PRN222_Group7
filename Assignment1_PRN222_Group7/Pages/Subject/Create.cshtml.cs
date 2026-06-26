@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Assignment1_PRN222_Group7.Pages.Subject
 {
-    [Authorize(Policy = "LecturerUp")]
+    [Authorize(Policy = "AdminOnly")]
     public class CreateModel : SubjectHubPageModel
     {
         private readonly ISubjectService _subjectService;

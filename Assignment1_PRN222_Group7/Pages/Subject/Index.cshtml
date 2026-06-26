@@ -9,7 +9,7 @@
         <h1 class="h3 fw-bold mb-0">📚 Môn học</h1>
         <p class="text-muted small mb-0">Danh sách tất cả môn học trong hệ thống</p>
     </div>
-    @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+    @if (User.IsInRole("Admin"))
     {
         <a asp-page="/Subject/Create" class="btn btn-primary rounded-pill px-4">
             <i class="bi bi-plus-lg me-1"></i> Thêm môn học

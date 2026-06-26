@@ -40,9 +40,12 @@
                                     <a class="nav-link text-dark fw-semibold" asp-page="/User/Index">Thành viên</a>
                                 </li>
                             }
-                            <li class="nav-item">
-                                <a class="nav-link text-dark fw-semibold" asp-page="/Subscription/Index">Gói dịch vụ</a>
-                            </li>
+                            @if (User.IsInRole("Student"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark fw-semibold" asp-page="/Subscription/Index">Gói dịch vụ</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link text-primary fw-bold" asp-page="/Chat/Index">
                                     <i class="fa-solid fa-robot me-1"></i>Trợ lý AI

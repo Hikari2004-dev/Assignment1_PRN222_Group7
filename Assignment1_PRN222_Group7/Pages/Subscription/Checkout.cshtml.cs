@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Assignment1_PRN222_Group7.Pages.Subscription
 {
-    [Authorize]
+    [Authorize(Roles = "Student")]
     public class CheckoutModel : PageModel
     {
         private readonly ISubscriptionService _subscriptionService;

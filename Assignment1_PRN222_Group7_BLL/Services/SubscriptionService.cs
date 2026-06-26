@@ -274,6 +274,13 @@ namespace Assignment1_PRN222_Group7_BLL.Services
 
         public async Task<(bool CanUpload, string? Message)> CheckDocumentUploadLimitAsync(int userId)
         {
+            var userRepo = _unitOfWork.GetRepository<User>();
+            var user = await userRepo.FirstOrDefaultAsync(u => u.Id == userId, "Role");
+            if (user != null && (user.Role.Name == "Admin" || user.Role.Name == "Lecturer"))
+            {
+                return (true, null);
+            }
+
             var sub = await GetActiveSubscriptionAsync(userId);
             if (sub == null)
             {
@@ -297,6 +304,13 @@ namespace Assignment1_PRN222_Group7_BLL.Services
 
         public async Task<(bool CanChat, string? Message)> CheckChatLimitAsync(int userId)
         {
+            var userRepo = _unitOfWork.GetRepository<User>();
+            var user = await userRepo.FirstOrDefaultAsync(u => u.Id == userId, "Role");
+            if (user != null && (user.Role.Name == "Admin" || user.Role.Name == "Lecturer"))
+            {
+                return (true, null);
+            }
+
             var sub = await GetActiveSubscriptionAsync(userId);
             if (sub == null)
             {
