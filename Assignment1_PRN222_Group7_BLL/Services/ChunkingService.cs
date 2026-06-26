@@ -22,21 +22,69 @@ namespace Assignment1_PRN222_Group7_BLL.Services
         }
 
         /// <summary>
-        /// Fixed sliding window chunking by word count.
+        /// Fixed sliding window chunking by character count.
+        /// Chunks are at most chunkSize characters (default 500), split at word boundaries.
+        /// Non-last chunks are padded with '!' to be exactly chunkSize characters.
         /// </summary>
         private List<string> ChunkTextFixed(string text, int chunkSize, int overlap)
         {
-            var words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length == 0) return [];
+            if (string.IsNullOrWhiteSpace(text)) return [];
 
+            int maxLen = chunkSize > 0 ? chunkSize : 500;
             var chunks = new List<string>();
-            int step = Math.Max(1, chunkSize - overlap);
+            int index = 0;
 
-            for (int i = 0; i < words.Length; i += step)
+            while (index < text.Length)
             {
-                int end = Math.Min(i + chunkSize, words.Length);
-                chunks.Add(string.Join(' ', words[i..end]));
-                if (end == words.Length) break;
+                int remaining = text.Length - index;
+
+                // For the last chunk, we do not pad it ("rồi file cuối k đủ cũng k sao")
+                if (remaining <= maxLen)
+                {
+                    var lastChunk = text.Substring(index).Trim();
+                    if (!string.IsNullOrEmpty(lastChunk))
+                    {
+                        chunks.Add(lastChunk);
+                    }
+                    break;
+                }
+
+                // Get substring of maxLen
+                var sub = text.Substring(index, maxLen);
+
+                // Find a word boundary (space, newline, or common punctuation) by scanning backwards
+                int cutIndex = maxLen;
+                for (int i = maxLen - 1; i >= Math.Max(0, maxLen - 60); i--) // scan up to 60 characters back
+                {
+                    char c = sub[i];
+                    if (char.IsWhiteSpace(c) || c == '.' || c == ',' || c == '!' || c == '?' || c == ';')
+                    {
+                        cutIndex = i + 1; // cut after this word boundary
+                        break;
+                    }
+                }
+
+                // Extract raw chunk text
+                var chunkText = text.Substring(index, cutIndex).Trim();
+
+                // If chunkText is empty, fallback to the full length
+                if (string.IsNullOrEmpty(chunkText))
+                {
+                    chunkText = sub;
+                    cutIndex = maxLen;
+                }
+
+                // Pad non-last chunk to be exactly maxLen characters using '!'
+                if (chunkText.Length < maxLen)
+                {
+                    int diff = maxLen - chunkText.Length;
+                    chunkText += new string('!', diff);
+                }
+
+                chunks.Add(chunkText);
+
+                // Advance index by the characters we actually consumed
+                index += cutIndex;
             }
 
             return chunks;
