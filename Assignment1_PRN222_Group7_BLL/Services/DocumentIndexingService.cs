@@ -67,6 +67,15 @@ namespace Assignment1_PRN222_Group7_BLL.Services
                 var existingChunks = await chunkRepo.FindAsync(c => c.DocumentId == documentId);
                 if (existingChunks.Any())
                 {
+                    // Delete referenced MessageSources first to avoid foreign key conflict
+                    var existingChunkIds = existingChunks.Select(c => c.Id).ToList();
+                    var msgSourceRepo = _uow.GetRepository<MessageSource>();
+                    var relatedSources = await msgSourceRepo.FindAsync(ms => existingChunkIds.Contains(ms.ChunkId));
+                    if (relatedSources.Any())
+                    {
+                        msgSourceRepo.RemoveRange(relatedSources);
+                    }
+
                     // Also delete from vector DB
                     await _vectorDb.DeleteByDocumentAsync(_collectionName, documentId);
                     chunkRepo.RemoveRange(existingChunks);
